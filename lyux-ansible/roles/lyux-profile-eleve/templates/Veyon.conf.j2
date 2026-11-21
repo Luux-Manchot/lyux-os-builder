@@ -1,0 +1,28 @@
+[General]
+Language=fr_FR
+LogLevel=4
+PrimaryServicePort=11100
+
+[Authentication]
+Method=1
+PrivateKeyBaseDir=/etc/veyon/keys/private
+PublicKeyBaseDir=/etc/veyon/keys/public
+
+[Network]
+ServicePort=11100
+FeatureWorkerPort=11200
+DemoServerPort=11400
+
+[Service]
+Autostart=true
+HideTrayIcon=true
+
+[Master]
+AutoSelectCurrentLocation=true
+HideOwnComputer=true
+{% if is_teacher_pc | default(false) %}
+CurrentLocation={{ 'Salle B204' if 'b204' in inventory_hostname else 'Salle S102' }}
+{% endif %}
+
+[NetworkObjectDirectory]
+Backend=BuiltinDirectory

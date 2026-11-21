@@ -1,0 +1,14 @@
+---
+# ==============================================================================
+# Playbook d'Enrôlement Rapide (exécuté localement par lyux-enrollment)
+# ==============================================================================
+- name: "Enrôlement local du poste LyuX"
+  hosts: localhost
+  connection: local
+  become: true
+  vars:
+    room_profile: "{{ lyux_room_profile | default('standard') }}"
+  roles:
+    - role: lyux-base
+    - role: lyux-kiosk
+    - role: lyux-profile-salles

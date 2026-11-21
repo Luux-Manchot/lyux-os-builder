@@ -1,0 +1,9 @@
+name;host;mac;location;type
+Salle B204;;;;"location"
+b204-prof;192.168.100.20;52:54:00:11:20:01;Salle B204;"computer"
+b204-pc01;192.168.100.21;52:54:00:11:20:02;Salle B204;"computer"
+b204-pc02;192.168.100.22;52:54:00:11:20:03;Salle B204;"computer"
+Salle S102;;;;"location"
+s102-prof;192.168.100.30;52:54:00:11:30:01;Salle S102;"computer"
+s102-pc01;192.168.100.31;52:54:00:11:30:02;Salle S102;"computer"
+s102-pc02;192.168.100.32;52:54:00:11:30:03;Salle S102;"computer"

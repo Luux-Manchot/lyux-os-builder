@@ -1,0 +1,290 @@
+---
+# ==============================================================================
+# Rôle LyuX-Profile-Salles : Déploiement des logiciels par discipline
+# ==============================================================================
+
+# --- Profil NSI & Mathématiques ---
+- name: "Installation des paquets pour profil NSI & Maths"
+  ansible.builtin.apt:
+    name:
+      - git
+      - gcc
+      - g++
+      - gdb
+      - code
+      - jupyter-notebook
+      - spyder
+      - scilab
+      - octave
+      - wireshark
+    state: present
+  when: room_profile == 'nsi'
+
+# --- Profil Sciences (Physique-Chimie & SVT) ---
+- name: "Installation des paquets pour profil Sciences"
+  ansible.builtin.apt:
+    name:
+      - avogadro
+      - stellarium
+      - tracker
+      - qgis
+      - gimp
+      - imagej
+    state: present
+  when: room_profile == 'sciences'
+
+# --- Profil Sciences de l'Ingénieur & Technologie ---
+- name: "Installation des paquets pour profil Technologie"
+  ansible.builtin.apt:
+    name:
+      - freecad
+      - kicad
+      - blender
+      - prusa-slicer
+    state: present
+  when: room_profile == 'techno'
+
+# ==============================================================================
+# Tâches complémentaires : Raccourcis Bureau & Environnement Pédagogique
+# ==============================================================================
+
+- name: "Création des dossiers Bureau dans /etc/skel"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+
+# --- Raccourcis Bureau NSI & Maths ---
+- name: "Création du raccourci Bureau Thonny IDE (NSI/Maths)"
+  ansible.builtin.copy:
+    dest: "{{ item }}/Thonny_Python.desktop"
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Thonny Python IDE
+      Comment=Environnement de programmation Python pédagogique
+      Exec=thonny %F
+      Icon=thonny
+      Terminal=false
+      Categories=Development;IDE;Education;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+  when: room_profile == 'nsi'
+
+- name: "Création du raccourci Bureau VS Code (NSI/Maths)"
+  ansible.builtin.copy:
+    dest: "{{ item }}/VS_Code.desktop"
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Visual Studio Code
+      Comment=Éditeur de code source et environnement NSI
+      Exec=code --no-sandbox %F
+      Icon=vscode
+      Terminal=false
+      Categories=Development;IDE;TextEditor;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+  when: room_profile == 'nsi'
+
+- name: "Création du raccourci Bureau Jupyter Notebook (NSI/Maths)"
+  ansible.builtin.copy:
+    dest: "{{ item }}/Jupyter_Notebook.desktop"
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Jupyter Notebook
+      Comment=Cahier interactif Python pour l'algorithmique et les mathématiques
+      Exec=jupyter-notebook
+      Icon=jupyter
+      Terminal=false
+      Categories=Development;Education;Science;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+  when: room_profile == 'nsi'
+
+- name: "Création du raccourci Bureau GeoGebra (NSI/Maths)"
+  ansible.builtin.copy:
+    dest: "{{ item }}/GeoGebra.desktop"
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=GeoGebra Mathématiques
+      Comment=Géométrie dynamique, algèbre et statistiques
+      Exec=geogebra
+      Icon=geogebra
+      Terminal=false
+      Categories=Education;Math;Science;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+  when: room_profile == 'nsi'
+
+- name: "Création du raccourci Bureau Scilab (NSI/Maths)"
+  ansible.builtin.copy:
+    dest: "{{ item }}/Scilab.desktop"
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Scilab Calcul Numérique
+      Comment=Calcul numérique et modélisation scientifique
+      Exec=scilab
+      Icon=scilab
+      Terminal=false
+      Categories=Education;Math;Science;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+  when: room_profile == 'nsi'
+
+- name: "Création du raccourci Bureau Partages Salle B204 (NSI/Maths)"
+  ansible.builtin.copy:
+    dest: "{{ item }}/Partages_Classe_B204.desktop"
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Partages Classe NSI (B204)
+      Comment=Accès direct aux documents de cours et dossiers de rendu
+      Exec=dolphin ~/Partages_Classes
+      Icon=folder-network
+      Terminal=false
+      Categories=Education;System;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+  when: room_profile == 'nsi'
+
+# --- Raccourcis Bureau Sciences ---
+- name: "Création du raccourci Bureau Avogadro (Sciences)"
+  ansible.builtin.copy:
+    dest: "{{ item }}/Avogadro_3D.desktop"
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Avogadro Modélisation Moléculaire
+      Comment=Éditeur et visualiseur moléculaire 3D pour la chimie
+      Exec=avogadro %f
+      Icon=avogadro
+      Terminal=false
+      Categories=Education;Science;Chemistry;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+  when: room_profile == 'sciences'
+
+- name: "Création du raccourci Bureau Stellarium (Sciences)"
+  ansible.builtin.copy:
+    dest: "{{ item }}/Stellarium.desktop"
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Stellarium Planétarium
+      Comment=Planétarium interactif pour l'astronomie et l'optique
+      Exec=stellarium
+      Icon=stellarium
+      Terminal=false
+      Categories=Education;Science;Astronomy;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+  when: room_profile == 'sciences'
+
+- name: "Création du raccourci Bureau Tracker Analyse Vidéo (Sciences)"
+  ansible.builtin.copy:
+    dest: "{{ item }}/Tracker_Video.desktop"
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Tracker Analyse Vidéo Mécanique
+      Comment=Analyse vidéo et modélisation de trajectoires pour la physique
+      Exec=tracker
+      Icon=video-display
+      Terminal=false
+      Categories=Education;Science;Physics;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+  when: room_profile == 'sciences'
+
+- name: "Création du raccourci Bureau LibreOffice (Sciences)"
+  ansible.builtin.copy:
+    dest: "{{ item }}/LibreOffice.desktop"
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=LibreOffice Bureautique Pédagogique
+      Comment=Suite bureautique complète (Traitement de texte, Tableur, Présentation)
+      Exec=libreoffice %U
+      Icon=libreoffice-main
+      Terminal=false
+      Categories=Office;Education;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+  when: room_profile == 'sciences'
+
+- name: "Création du raccourci Bureau GIMP (Sciences)"
+  ansible.builtin.copy:
+    dest: "{{ item }}/GIMP.desktop"
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=GIMP Retouche d'Images
+      Comment=Traitement et analyse d'images scientifiques
+      Exec=gimp %U
+      Icon=gimp
+      Terminal=false
+      Categories=Graphics;2DGraphics;RasterEditor;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+  when: room_profile == 'sciences'
+
+- name: "Création du raccourci Bureau Partages Salle S102 (Sciences)"
+  ansible.builtin.copy:
+    dest: "{{ item }}/Partages_Classe_S102.desktop"
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Partages Classe Sciences (S102)
+      Comment=Accès direct aux protocoles de TP et dossiers de rendu
+      Exec=dolphin ~/Partages_Classes
+      Icon=folder-network
+      Terminal=false
+      Categories=Education;System;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+  when: room_profile == 'sciences'

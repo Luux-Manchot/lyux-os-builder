@@ -1,0 +1,34 @@
+# ==============================================================================
+# Configuration Branding Calamares — LyuX OS (Opération Manchot)
+# ==============================================================================
+---
+componentName: lyux
+welcomeStyleCalamares: true
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 960px,640px
+
+strings:
+  productName:         "LyuX OS"
+  version:             "2026.1 (Opération Manchot)"
+  shortProductName:    "LyuX"
+  versionedName:       "LyuX OS 2026.1"
+  shortVersionedName:  "LyuX 2026"
+  bootloaderEntryName: "LyuX"
+  productUrl:          "http://server.lyux.lan"
+  supportUrl:          "http://server.lyux.lan:8085"
+  knownIssuesUrl:      "http://server.lyux.lan:9090"
+  releaseNotesUrl:     "http://server.lyux.lan/notes"
+
+images:
+  productLogo:         "lyux-logo.png"
+  productIcon:         "lyux-icon.png"
+  productWelcome:      "welcome.png"
+
+style:
+  sidebarBackground:    "#0F172A"
+  sidebarText:          "#F8FAFC"
+  sidebarTextSelect:    "#38BDF8"
+  sidebarTextHighlight: "#38BDF8"
+
+slideshow:             "show.qml"

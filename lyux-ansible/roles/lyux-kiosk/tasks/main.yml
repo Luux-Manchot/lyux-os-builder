@@ -1,0 +1,29 @@
+---
+# ==============================================================================
+# Rôle LyuX-Kiosk : Thème KDE Plasma moderne et Verrouillage Kiosk
+# ==============================================================================
+
+- name: "Création du répertoire de configuration globale KDE"
+  ansible.builtin.file:
+    path: /etc/xdg
+    state: directory
+    mode: '0755'
+
+- name: "Application du verrouillage KDE Kiosk (kdeglobals)"
+  ansible.builtin.template:
+    src: kdeglobals.j2
+    dest: /etc/xdg/kdeglobals
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: "Interdiction de la modification des panneaux et widgets Plasma"
+  ansible.builtin.copy:
+    dest: /etc/xdg/plasma-kiosk.sh
+    owner: root
+    group: root
+    mode: '0755'
+    content: |
+      #!/bin/sh
+      # Verrouillage immutable des applets et widgets KDE
+      export KDE_KIOSK_IMMUTABLE=1

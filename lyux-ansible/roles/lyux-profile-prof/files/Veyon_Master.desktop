@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Veyon Master
+GenericName=Supervision Pédagogique
+Comment=Surveillance en direct, verrouillage et projection pour la classe
+Exec=veyon-master
+Icon=veyon-master
+Terminal=false
+Categories=Education;System;Network;
+StartupNotify=true

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE pam_mount SYSTEM "pam_mount.conf.xml.dtd">
+<pam_mount>
+    <!-- Options de débogage (0 = désactivé, 1 = activé) -->
+    <debug enable="0" />
+
+    <!-- Montage automatique du dossier personnel réseau vers ~/Espace_Personnel -->
+    <volume
+        user="*"
+        fstype="cifs"
+        server="{{ lyux_server_host | default('server.lyux.lan') }}"
+        path="homes/%(USER)"
+        mountpoint="~/Espace_Personnel"
+        options="sec=ntlmssp,uid=%(USERUID),gid=%(USERGID),file_mode=0700,dir_mode=0700" />
+
+    <!-- Montage des partages de cours / classes -->
+    <volume
+        sgrp="eleves"
+        fstype="cifs"
+        server="{{ lyux_server_host | default('server.lyux.lan') }}"
+        path="classes"
+        mountpoint="~/Partages_Classes"
+        options="sec=ntlmssp,uid=%(USERUID),gid=%(USERGID),file_mode=0770,dir_mode=0770" />
+
+    <!-- Montage de l'espace d'échange enseignants -->
+    <volume
+        sgrp="enseignants"
+        fstype="cifs"
+        server="{{ lyux_server_host | default('server.lyux.lan') }}"
+        path="profs"
+        mountpoint="~/Partages_Enseignants"
+        options="sec=ntlmssp,uid=%(USERUID),gid=%(USERGID),file_mode=0770,dir_mode=0770" />
+
+    <mntoptions allow="nosuid,nodev,loop,encryption,fsck,nonempty,allow_root,allow_other" />
+    <mntoptions require="nosuid,nodev" />
+    <logout wait="0" hup="0" term="0" kill="0" />
+    <mkmountpoint enable="1" remove="true" />
+</pam_mount>

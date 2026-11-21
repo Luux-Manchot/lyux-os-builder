@@ -1,0 +1,56 @@
+---
+# ==============================================================================
+# Rôle LyuX-Profile-Eleve : Veyon Service et Sécurisation
+# ==============================================================================
+
+- name: "Création des répertoires de configuration Veyon"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /etc/veyon
+    - /etc/veyon/keys
+    - /etc/veyon/keys/public
+    - /etc/veyon/keys/public/teacher
+
+- name: "Sécurisation stricte : suppression de toute clef privée sur poste élève"
+  ansible.builtin.file:
+    path: /etc/veyon/keys/private
+    state: absent
+
+- name: "Déploiement de la clef publique Veyon"
+  ansible.builtin.copy:
+    src: keys/public/teacher/key
+    dest: /etc/veyon/keys/public/teacher/key
+    owner: root
+    group: root
+    mode: '0444'
+
+- name: "Déploiement du fichier de configuration global Veyon Client"
+  ansible.builtin.template:
+    src: Veyon.conf.j2
+    dest: /etc/veyon/Veyon.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: "Activation et démarrage du service Veyon Client"
+  ansible.builtin.systemd:
+    name: veyon
+    state: started
+    enabled: yes
+
+- name: "Autorisation des flux entrants Veyon dans UFW pour postes élèves"
+  ansible.builtin.command: "ufw allow {{ item.port }}/tcp comment '{{ item.comment }}'"
+  loop:
+    - { port: "11100", comment: "Veyon Service Client" }
+    - { port: "11200", comment: "Veyon Feature Client" }
+  ignore_errors: true
+
+- name: "Désactivation des accès terminaux directs en raccourci clavier"
+  ansible.builtin.file:
+    path: /usr/local/share/kxmlgui5/konsole/konsoleui.rc
+    state: absent

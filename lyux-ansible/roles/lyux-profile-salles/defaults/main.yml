@@ -1,0 +1,55 @@
+---
+# ==============================================================================
+# Variables par défaut pour le rôle lyux-profile-salles
+# ==============================================================================
+
+# Paquets de base NSI & Mathématiques (apt)
+lyux_profile_nsi_packages:
+  - git
+  - gcc
+  - g++
+  - gdb
+  - code
+  - jupyter-notebook
+  - spyder
+  - scilab
+  - octave
+  - wireshark
+
+# Bibliothèques Python complémentaires pour le programme NSI & SNT
+lyux_profile_nsi_python_packages:
+  - python3-numpy
+  - python3-matplotlib
+  - python3-pandas
+  - python3-scipy
+  - python3-networkx
+  - python3-pil
+  - python3-pygame
+  - python3-flask
+  - sqlite3
+
+# Paquets de base Sciences (Physique-Chimie & SVT)
+lyux_profile_sciences_packages:
+  - avogadro
+  - stellarium
+  - tracker
+  - qgis
+  - gimp
+  - imagej
+
+# Paquets complémentaires multimédia & utilitaires Sciences
+lyux_profile_sciences_extra_packages:
+  - default-jre
+  - gnuplot
+  - hunspell-fr
+  - mythes-fr
+
+# Paquets de base Technologie & STI2D
+lyux_profile_techno_packages:
+  - freecad
+  - kicad
+  - blender
+  - prusa-slicer
+
+# Activation de la création des raccourcis Bureau dans /etc/skel/Bureau/
+lyux_create_desktop_shortcuts: true

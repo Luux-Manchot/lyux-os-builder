@@ -1,0 +1,10 @@
+---
+- name: Restart sssd
+  ansible.builtin.service:
+    name: sssd
+    state: restarted
+
+- name: Restart sddm
+  ansible.builtin.service:
+    name: sddm
+    state: restarted

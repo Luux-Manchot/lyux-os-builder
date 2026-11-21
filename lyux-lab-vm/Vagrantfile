@@ -1,0 +1,82 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/bookworm64"
+
+  # Synchronisation de la racine du depot pour acces a /vagrant/projects
+  config.vm.synced_folder "../../", "/vagrant"
+
+  # ==============================================================================
+  # 1. SERVEUR CENTRAL LYUX
+  # ==============================================================================
+  config.vm.define "server" do |srv|
+    srv.vm.hostname = "serveur.lyux.lan"
+    srv.vm.network "private_network", ip: "192.168.100.10"
+    
+    # Redirection ports web pour tests depuis l'hôte
+    srv.vm.network "forwarded_port", guest: 80, host: 8088
+    srv.vm.network "forwarded_port", guest: 8080, host: 8880
+    srv.vm.network "forwarded_port", guest: 8000, host: 8000
+    srv.vm.network "forwarded_port", guest: 3001, host: 3001
+
+    srv.vm.provider "virtualbox" do |vb|
+      vb.name = "LyuX-Serveur-Central"
+      vb.memory = 4096
+      vb.cpus = 2
+    end
+
+    srv.vm.provision "shell", path: "scripts/provision-server.sh"
+  end
+
+  # ==============================================================================
+  # 2. CLIENT PROFESSEUR
+  # ==============================================================================
+  config.vm.define "prof" do |prof|
+    prof.vm.hostname = "b204-prof"
+    prof.vm.network "private_network", ip: "192.168.100.20"
+
+    prof.vm.provider "virtualbox" do |vb|
+      vb.name = "LyuX-Client-Prof"
+      vb.memory = 3072
+      vb.cpus = 2
+      vb.gui = true # Affichage de l'écran graphique
+    end
+
+    prof.vm.provision "shell", path: "scripts/provision-client.sh", args: ["prof", "b204-prof"]
+  end
+
+  # ==============================================================================
+  # 3. CLIENT ÉLÈVE
+  # ==============================================================================
+  config.vm.define "eleve" do |eleve|
+    eleve.vm.hostname = "b204-01"
+    eleve.vm.network "private_network", ip: "192.168.100.21"
+
+    eleve.vm.provider "virtualbox" do |vb|
+      vb.name = "LyuX-Client-Eleve"
+      vb.memory = 2048
+      vb.cpus = 2
+      vb.gui = true # Affichage de l'écran graphique
+    end
+
+    eleve.vm.provision "shell", path: "scripts/provision-client.sh", args: ["eleve", "b204-01"]
+  end
+
+  # ==============================================================================
+  # 4. CLIENT VIE SCOLAIRE / ADMINISTRATION
+  # ==============================================================================
+  config.vm.define "viesco" do |viesco|
+    viesco.vm.hostname = "viesco-01"
+    viesco.vm.network "private_network", ip: "192.168.100.40"
+
+    viesco.vm.provider "virtualbox" do |vb|
+      vb.name = "LyuX-Client-VieSco"
+      vb.memory = 2048
+      vb.cpus = 2
+      vb.gui = true
+    end
+
+    viesco.vm.provision "shell", path: "scripts/provision-client.sh", args: ["viesco", "viesco-01"]
+  end
+end

@@ -1,0 +1,66 @@
+{
+  "NetworkObjects": {
+    "Locations": [
+      {
+        "id": "1",
+        "name": "Salle B204",
+        "description": "Classe 1 — Informatique NSI / Maths (1G1)"
+      },
+      {
+        "id": "2",
+        "name": "Salle S102",
+        "description": "Classe 2 — Sciences / Physique (1G2)"
+      }
+    ],
+    "Computers": [
+      {
+        "id": "1",
+        "name": "b204-prof",
+        "host": "192.168.100.20",
+        "mac": "52:54:00:11:20:01",
+        "location": "Salle B204",
+        "role": "teacher"
+      },
+      {
+        "id": "2",
+        "name": "b204-pc01",
+        "host": "192.168.100.21",
+        "mac": "52:54:00:11:20:02",
+        "location": "Salle B204",
+        "role": "student"
+      },
+      {
+        "id": "3",
+        "name": "b204-pc02",
+        "host": "192.168.100.22",
+        "mac": "52:54:00:11:20:03",
+        "location": "Salle B204",
+        "role": "student"
+      },
+      {
+        "id": "4",
+        "name": "s102-prof",
+        "host": "192.168.100.30",
+        "mac": "52:54:00:11:30:01",
+        "location": "Salle S102",
+        "role": "teacher"
+      },
+      {
+        "id": "5",
+        "name": "s102-pc01",
+        "host": "192.168.100.31",
+        "mac": "52:54:00:11:30:02",
+        "location": "Salle S102",
+        "role": "student"
+      },
+      {
+        "id": "6",
+        "name": "s102-pc02",
+        "host": "192.168.100.32",
+        "mac": "52:54:00:11:30:03",
+        "location": "Salle S102",
+        "role": "student"
+      }
+    ]
+  }
+}

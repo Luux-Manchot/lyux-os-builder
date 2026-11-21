@@ -1,0 +1,25 @@
+[sssd]
+config_file_version = 2
+services = nss, pam
+domains = {{ lyux_domain | default('lyux.lan') }}
+
+[domain/{{ lyux_domain | default('lyux.lan') }}]
+id_provider = ldap
+auth_provider = ldap
+ldap_uri = {{ lyux_ldap_uri | default('ldap://192.168.100.10') }}
+ldap_search_base = {{ lyux_ldap_base | default('dc=lyux,dc=lan') }}
+ldap_user_search_base = ou=utilisateurs,{{ lyux_ldap_base | default('dc=lyux,dc=lan') }}
+ldap_group_search_base = ou=groupes,{{ lyux_ldap_base | default('dc=lyux,dc=lan') }}
+ldap_schema = rfc2307
+
+# Active Directory & Kerberos realm
+krb5_realm = {{ lyux_krb5_realm | default('LYUX.LAN') }}
+dns_discovery_domain = {{ lyux_domain | default('lyux.lan') }}
+
+# Sécurité & Cache
+ldap_auth_disable_tls_never_use_in_production = true
+cache_credentials = true
+account_cache_expiration = 1
+enumerate = false
+fallback_homedir = /home/%u
+default_shell = /bin/bash

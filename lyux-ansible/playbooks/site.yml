@@ -1,0 +1,28 @@
+---
+# ==============================================================================
+# Playbook Principal LyuX - Déploiement & Harmonisation de tout le parc
+# ==============================================================================
+
+- name: "Configuration du socle commun sur tous les postes clients"
+  hosts: postes_clients
+  become: true
+  roles:
+    - role: lyux-base
+      tags: [base, system]
+    - role: lyux-kiosk
+      tags: [kiosk, desktop]
+
+- name: "Application des rôles pédagogiques et profils de salle"
+  hosts: postes_clients
+  become: true
+  roles:
+    - role: lyux-profile-prof
+      when: is_teacher_pc | default(false)
+      tags: [prof]
+
+    - role: lyux-profile-eleve
+      when: not (is_teacher_pc | default(false))
+      tags: [eleve]
+
+    - role: lyux-profile-salles
+      tags: [salles, apps]

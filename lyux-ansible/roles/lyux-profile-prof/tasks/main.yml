@@ -1,0 +1,123 @@
+---
+# ==============================================================================
+# Rôle LyuX-Profile-Prof : Outils Enseignant (Veyon Master, Raccourcis LAM)
+# ==============================================================================
+
+- name: "Installation de Veyon Master pour la supervision de classe"
+  ansible.builtin.apt:
+    name:
+      - veyon-master
+      - veyon-plugins
+    state: present
+
+- name: "Vérification du groupe enseignants pour la sécurisation Veyon"
+  ansible.builtin.group:
+    name: enseignants
+    state: present
+    system: yes
+
+- name: "Création des répertoires de configuration Veyon"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /etc/veyon
+    - /etc/veyon/keys
+    - /etc/veyon/keys/public
+    - /etc/veyon/keys/public/teacher
+
+- name: "Création du répertoire sécurisé pour la clef privée Veyon enseignant"
+  ansible.builtin.file:
+    path: /etc/veyon/keys/private/teacher
+    state: directory
+    owner: root
+    group: enseignants
+    mode: '0750'
+
+- name: "Déploiement de la clef privée Veyon enseignant"
+  ansible.builtin.copy:
+    src: keys/private/teacher/key
+    dest: /etc/veyon/keys/private/teacher/key
+    owner: root
+    group: enseignants
+    mode: '0440'
+
+- name: "Déploiement de la clef publique Veyon"
+  ansible.builtin.copy:
+    src: keys/public/teacher/key
+    dest: /etc/veyon/keys/public/teacher/key
+    owner: root
+    group: root
+    mode: '0444'
+
+- name: "Déploiement du fichier de configuration global Veyon Master"
+  ansible.builtin.template:
+    src: Veyon.conf.j2
+    dest: /etc/veyon/Veyon.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: "Déploiement des répertoires d'objets réseau pour les salles pilotes"
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/veyon/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - network-objects.json
+    - network-objects.csv
+
+- name: "Activation et démarrage du service Veyon sur le poste enseignant"
+  ansible.builtin.systemd:
+    name: veyon
+    state: started
+    enabled: yes
+
+- name: "Autorisation des ports Veyon dans UFW pour le poste enseignant"
+  ansible.builtin.command: "ufw allow {{ item.port }}/tcp comment '{{ item.comment }}'"
+  loop:
+    - { port: "11400", comment: "Veyon Demo Server" }
+    - { port: "11100", comment: "Veyon Service Probe" }
+  ignore_errors: true
+
+- name: "Création des dossiers Bureau dans le squelette utilisateur"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+
+- name: "Déploiement du raccourci Bureau Veyon Master pour l'enseignant"
+  ansible.builtin.copy:
+    src: Veyon_Master.desktop
+    dest: "{{ item }}/Veyon_Master.desktop"
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+
+- name: "Création du raccourci Bureau pour la réinitialisation de mot de passe élève"
+  ansible.builtin.copy:
+    dest: /etc/skel/Desktop/Reinitialiser_MDP_Eleve.desktop
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Réinitialiser MDP Élève
+      Comment=Interface express pour réinitialiser le mot de passe d'un élève
+      Exec=firefox http://lam.lyux.lan
+      Icon=system-lock-screen
+      Terminal=false
+      Categories=Education;System;

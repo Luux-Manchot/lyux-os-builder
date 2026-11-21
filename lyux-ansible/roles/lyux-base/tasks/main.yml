@@ -1,0 +1,196 @@
+---
+# ==============================================================================
+# Rôle LyuX-Base : Intégration domaine, proxy APT, montage réseau, socle logiciel
+# ==============================================================================
+
+- name: "Configuration du proxy Apt-Cacher-NG"
+  ansible.builtin.template:
+    src: 01apt-cacher-proxy.j2
+    dest: /etc/apt/apt.conf.d/01proxy
+    owner: root
+    group: root
+    mode: '0644'
+  when: apt_cache_url is defined
+
+- name: "Mise à jour du cache APT"
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: "Installation des paquets d'authentification et de montage réseau"
+  ansible.builtin.apt:
+    name:
+      - sssd
+      - sssd-ldap
+      - sssd-tools
+      - sssd-ad
+      - realmd
+      - adcli
+      - krb5-user
+      - libpam-sss
+      - libnss-sss
+      - libpam-mount
+      - cifs-utils
+      - nfs-common
+      - keyutils
+      - acl
+      - locales
+      - keyboard-configuration
+      - console-setup
+      - sddm
+    state: present
+
+- name: "Installation du socle bureautique et pédagogique commun"
+  ansible.builtin.apt:
+    name:
+      - libreoffice
+      - libreoffice-l10n-fr
+      - firefox-esr
+      - firefox-esr-l10n-fr
+      - vlc
+      - okular
+      - audacity
+      - python3-full
+      - python3-pip
+      - python3-pyqt6
+      - thonny
+      - geogebra
+      - cups-client
+      - veyon-service
+    state: present
+
+- name: "Configuration de la locale française (fr_FR.UTF-8)"
+  ansible.builtin.lineinfile:
+    path: /etc/locale.gen
+    regexp: '^#?\s*fr_FR\.UTF-8 UTF-8'
+    line: 'fr_FR.UTF-8 UTF-8'
+    state: present
+
+- name: "Génération des locales système"
+  ansible.builtin.command: locale-gen
+  changed_when: false
+
+- name: "Définition de la locale par défaut du système"
+  ansible.builtin.copy:
+    dest: /etc/default/locale
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      LANG="fr_FR.UTF-8"
+      LC_ALL="fr_FR.UTF-8"
+      LANGUAGE="fr_FR:fr"
+
+- name: "Configuration du clavier AZERTY français (pc105 / latin9)"
+  ansible.builtin.copy:
+    dest: /etc/default/keyboard
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      XKBMODEL="pc105"
+      XKBLAYOUT="fr"
+      XKBVARIANT="latin9"
+      XKBOPTIONS=""
+      BACKSPACE="guess"
+
+- name: "Création du dossier de configuration SDDM"
+  ansible.builtin.file:
+    path: /etc/sddm.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: "Configuration de SDDM pour forcer la session KDE Plasma sous X11"
+  ansible.builtin.template:
+    src: 10-lyux-sddm.conf.j2
+    dest: /etc/sddm.conf.d/10-lyux-sddm.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart sddm
+
+- name: "Configuration de SSSD pour l'authentification centralisée"
+  ansible.builtin.template:
+    src: sssd.conf.j2
+    dest: /etc/sssd/sssd.conf
+    owner: root
+    group: root
+    mode: '0600'
+  notify: Restart sssd
+
+- name: "Configuration de pam_mount pour le montage dynamique des partages"
+  ansible.builtin.template:
+    src: pam_mount.conf.xml.j2
+    dest: /etc/security/pam_mount.conf.xml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: "Activation de la création automatique du répertoire local (pam_mkhomedir)"
+  ansible.builtin.command: pam-auth-update --enable mkhomedir
+  changed_when: false
+
+- name: "Création des répertoires Bureau par défaut dans /etc/skel"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+
+- name: "Déploiement du raccourci Bureau pour Espace Personnel réseau"
+  ansible.builtin.copy:
+    dest: "{{ item }}/Espace_Personnel.desktop"
+    owner: root
+    group: root
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Mon Espace Personnel
+      Comment=Accès à vos fichiers personnels réseau (//server.lyux.lan/homes)
+      Exec=dolphin ~/Espace_Personnel
+      Icon=user-home
+      Terminal=false
+      Categories=System;FileManager;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+
+- name: "Déploiement du raccourci Bureau pour Partages Classes réseau"
+  ansible.builtin.copy:
+    dest: "{{ item }}/Partages_Classes.desktop"
+    owner: root
+    group: root
+    mode: '0755'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Partages des Classes
+      Comment=Accès aux cours et rendus (//server.lyux.lan/classes)
+      Exec=dolphin ~/Partages_Classes
+      Icon=folder-network
+      Terminal=false
+      Categories=Education;System;FileManager;
+  loop:
+    - /etc/skel/Bureau
+    - /etc/skel/Desktop
+
+- name: "Configuration du service de nettoyage automatique des sessions locales au shutdown"
+  ansible.builtin.copy:
+    dest: /usr/local/bin/lyux-cleanup-sessions.sh
+    owner: root
+    group: root
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      # Purge les caches temporaires locaux des comptes élèves
+      find /home -maxdepth 2 -type d -name ".cache" -exec rm -rf {} + 2>/dev/null || true
+      find /tmp -user eleves -delete 2>/dev/null || true

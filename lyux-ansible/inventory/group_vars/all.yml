@@ -1,0 +1,15 @@
+---
+# Variables globales pour tous les postes du lycée
+lyux_server_ip: "192.168.100.10"
+lyux_server_name: "serveur.lyux.lan"
+lyux_ldap_uri: "ldap://192.168.100.10"
+lyux_ldap_base: "dc=lyux,dc=lan"
+lyux_samba_share_homes: "//192.168.100.10/homes"
+lyux_samba_share_classes: "//192.168.100.10/classes"
+lyux_samba_share_profs: "//192.168.100.10/profs"
+
+# Paramètres de sécurité
+lyux_session_cleanup_on_logout: true
+lyux_enable_kiosk_lock: true
+lyux_timezone: "Europe/Paris"
+lyux_locale: "fr_FR.UTF-8"
