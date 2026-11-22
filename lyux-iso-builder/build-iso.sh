@@ -9,7 +9,8 @@ echo "💿 Génération de l'image ISO LyuX (Opération Manchot)"
 echo "======================================================="
 
 WORK_DIR="/tmp/lyux-iso-build"
-OUTPUT_DIR="$(pwd)/output"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+OUTPUT_DIR="$REPO_ROOT/lyux-desktop/build"
 ISO_NAME="lyux-installer-latest.iso"
 
 mkdir -p "$WORK_DIR" "$OUTPUT_DIR"

@@ -1,0 +1,44 @@
+---
+# ==============================================================================
+# Rôle lyux-apps : applications clients du dépôt lyux-desktop
+# ==============================================================================
+
+# Racine des sources (dépôt lyux-desktop, frère de os-builder).
+# Peut être surchargée avec --extra-vars "lyux_apps_src=/chemin/applications".
+lyux_apps_src: "{{ playbook_dir }}/../../../lyux-desktop/applications"
+
+# Destination sur les postes (attendue par les fichiers .desktop).
+lyux_apps_install_dir: /opt/lyux/apps
+lyux_apps_desktop_dir: /usr/share/applications
+lyux_apps_autostart_dir: /etc/xdg/autostart
+
+# welcome est la seule application réellement déployée en production.
+# station et report sont partiels, enrollment est l'ancien flux : désactivés par défaut.
+lyux_apps:
+  - name: welcome
+    deploy: true
+    desktop: lyux-welcome.desktop
+    autostart: true
+  - name: station
+    deploy: false
+    desktop: ""
+    autostart: false
+  - name: report
+    deploy: false
+    desktop: lyux-report.desktop
+    autostart: false
+  - name: enrollment
+    deploy: false
+    desktop: ""
+    autostart: false
+    systemd_unit: lyux-enrollment.service
+
+# Le service enrollment n'est activé que si explicitement demandé.
+lyux_apps_enable_enrollment_service: false
+
+# Paquets Debian fournissant les dépendances Python des applications.
+lyux_apps_python_packages:
+  - python3-pyqt6
+  - python3-requests
+  - python3-psutil
+  - python3-rich

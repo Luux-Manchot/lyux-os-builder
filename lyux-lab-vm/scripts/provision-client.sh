@@ -32,19 +32,38 @@ if [ "$ROLE" = "prof" ]; then
     apt-get install -y veyon-master || true
 fi
 
-# 3. Copie des applications LyuX
+# 3. Suppression du centre de bienvenue KDE par défaut & Configuration XDG menus
+apt-get purge -y plasma-welcome || true
+mkdir -p /etc/xdg/autostart
+echo "Hidden=true" >> /etc/xdg/autostart/org.kde.plasma-welcome.desktop 2>/dev/null || true
+ln -sf /etc/xdg/menus/plasma-applications.menu /etc/xdg/menus/applications.menu 2>/dev/null || true
+echo "QT_QPA_PLATFORMTHEME=kde" >> /etc/environment 2>/dev/null || true
+echo "XDG_CURRENT_DESKTOP=KDE" >> /etc/environment 2>/dev/null || true
+
+# Session Plasma X11 par défaut (stabilité matérielle et Veyon)
+mkdir -p /etc/sddm.conf.d /var/lib/sddm
+echo -e "[Users]\nDefaultSession=plasmax11.desktop" > /etc/sddm.conf.d/10-session.conf
+chmod 644 /etc/sddm.conf.d/10-session.conf
+mv /usr/share/wayland-sessions/plasma.desktop /usr/share/wayland-sessions/plasma.desktop.disabled 2>/dev/null || true
+
+# 4. Copie des applications LyuX
 mkdir -p /opt/lyux/apps
 if [ -d "/vagrant/projects" ]; then
-    cp -r /vagrant/projects/lyux-welcome /opt/lyux/apps/
-    cp -r /vagrant/projects/lyux-report /opt/lyux/apps/
+    cp -r /vagrant/lyux-desktop/applications/welcome /opt/lyux/apps/
+    cp -r /vagrant/lyux-desktop/applications/report /opt/lyux/apps/
     
     # Raccourcis globaux
-    cp /opt/lyux/apps/lyux-welcome/lyux-welcome.desktop /usr/share/applications/
-    cp /opt/lyux/apps/lyux-report/lyux-report.desktop /usr/share/applications/
+    cp /opt/lyux/apps/welcome/lyux-welcome.desktop /usr/share/applications/
+    cp /opt/lyux/apps/report/lyux-report.desktop /usr/share/applications/
     
     # Autostart pour lyux-welcome
     mkdir -p /etc/xdg/autostart
-    cp /opt/lyux/apps/lyux-welcome/lyux-welcome.desktop /etc/xdg/autostart/
+    cp /opt/lyux/apps/welcome/lyux-welcome.desktop /etc/xdg/autostart/
+fi
+
+# 5. Déploiement du Profil Graphique officiel LyuX (Thème, Kiosk, Bureau)
+if [ -f "/vagrant/os-builder/lyux-desktop-profile/install-desktop-profile.sh" ]; then
+    bash /vagrant/os-builder/lyux-desktop-profile/install-desktop-profile.sh || true
 fi
 
 systemctl set-default graphical.target

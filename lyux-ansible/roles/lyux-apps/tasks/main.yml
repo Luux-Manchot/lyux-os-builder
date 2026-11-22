@@ -1,0 +1,107 @@
+---
+# ==============================================================================
+# Rôle lyux-apps : déploiement des applications depuis lyux-desktop/applications
+# ==============================================================================
+
+- name: "Vérification de la présence des sources lyux-desktop"
+  ansible.builtin.stat:
+    path: "{{ lyux_apps_src }}"
+  register: lyux_apps_src_stat
+  delegate_to: localhost
+  become: false
+
+- name: "Sources lyux-desktop introuvables"
+  ansible.builtin.fail:
+    msg: >-
+      Dossier introuvable : {{ lyux_apps_src }}.
+      Survoyez lyux_apps_src avec --extra-vars ou vérifiez le clone de lyux-desktop.
+  when: not lyux_apps_src_stat.stat.exists
+
+- name: "Installation des dépendances Python (paquets Debian)"
+  ansible.builtin.apt:
+    name: "{{ lyux_apps_python_packages }}"
+    state: present
+  when: lyux_apps | selectattr('deploy') | list | length > 0
+
+- name: "Création du répertoire d'installation des applications"
+  ansible.builtin.file:
+    path: "{{ lyux_apps_install_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: "Copie du code source des applications activées"
+  ansible.builtin.copy:
+    src: "{{ lyux_apps_src }}/{{ item.name }}/src/"
+    dest: "{{ lyux_apps_install_dir }}/{{ item.name }}/src/"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ lyux_apps | selectattr('deploy') | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: "Suppression des caches Python copiés depuis le poste de développement"
+  ansible.builtin.file:
+    path: "{{ lyux_apps_install_dir }}/{{ item.name }}/src/__pycache__"
+    state: absent
+  loop: "{{ lyux_apps | selectattr('deploy') | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: "Copie des fichiers requirements.txt"
+  ansible.builtin.copy:
+    src: "{{ lyux_apps_src }}/{{ item.name }}/requirements.txt"
+    dest: "{{ lyux_apps_install_dir }}/{{ item.name }}/requirements.txt"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ lyux_apps | selectattr('deploy') | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ignore_errors: true
+
+- name: "Installation des lanceurs Bureau"
+  ansible.builtin.copy:
+    src: "{{ lyux_apps_src }}/{{ item.name }}/{{ item.desktop }}"
+    dest: "{{ lyux_apps_desktop_dir }}/{{ item.desktop }}"
+    owner: root
+    group: root
+    mode: '0755'
+  loop: "{{ lyux_apps | selectattr('deploy') | selectattr('desktop') | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: "Installation du lanceur de démarrage automatique"
+  ansible.builtin.copy:
+    src: "{{ lyux_apps_src }}/{{ item.name }}/{{ item.desktop }}"
+    dest: "{{ lyux_apps_autostart_dir }}/{{ item.desktop }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ lyux_apps | selectattr('deploy') | selectattr('autostart') | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: "Installation du service systemd enrollment"
+  ansible.builtin.copy:
+    src: "{{ lyux_apps_src }}/{{ item.name }}/systemd/{{ item.systemd_unit }}"
+    dest: "/etc/systemd/system/{{ item.systemd_unit }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ lyux_apps | selectattr('deploy') | selectattr('systemd_unit', 'defined') | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: lyux_apps_enable_enrollment_service
+  notify: recharger systemd
+
+- name: "Activation du service enrollment"
+  ansible.builtin.service:
+    name: "{{ item.systemd_unit }}"
+    enabled: true
+  loop: "{{ lyux_apps | selectattr('deploy') | selectattr('systemd_unit', 'defined') | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: lyux_apps_enable_enrollment_service

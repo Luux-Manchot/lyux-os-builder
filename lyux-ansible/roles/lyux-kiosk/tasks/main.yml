@@ -27,3 +27,25 @@
       #!/bin/sh
       # Verrouillage immutable des applets et widgets KDE
       export KDE_KIOSK_IMMUTABLE=1
+
+- name: "Désactivation du Centre de Bienvenue KDE par défaut (plasma-welcome)"
+  ansible.builtin.lineinfile:
+    path: /etc/xdg/autostart/org.kde.plasma-welcome.desktop
+    line: "Hidden=true"
+    create: yes
+    mode: '0644'
+
+- name: "Lien symbolique du menu d'applications XDG KDE Plasma"
+  ansible.builtin.file:
+    src: /etc/xdg/menus/plasma-applications.menu
+    dest: /etc/xdg/menus/applications.menu
+    state: link
+    force: yes
+
+- name: "Activation automatique du Guide de Bienvenue LyuX"
+  ansible.builtin.copy:
+    src: /opt/lyux/apps/welcome/lyux-welcome.desktop
+    dest: /etc/xdg/autostart/lyux-welcome.desktop
+    remote_src: yes
+    mode: '0644'
+  ignore_errors: yes

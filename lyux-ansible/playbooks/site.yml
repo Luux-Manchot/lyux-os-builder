@@ -26,3 +26,6 @@
 
     - role: lyux-profile-salles
       tags: [salles, apps]
+
+    - role: lyux-apps
+      tags: [apps, applications]

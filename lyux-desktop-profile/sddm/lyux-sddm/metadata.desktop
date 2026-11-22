@@ -1,0 +1,16 @@
+[SddmGreeterTheme]
+Name=LyuX
+Description=Thème moderne LyuX pour SDDM
+Author=FlowCreativeStudio
+Copyright=(c) 2026 LyuX OS
+License=GPL-3.0
+Type=sddm-theme
+Version=1.0
+Website=https://github.com/Luux-Manchot/LyuX
+Screenshot=background.jpeg
+MainScript=Main.qml
+ConfigFile=theme.conf
+TranslationsDirectory=translations
+Theme-Id=lyux-sddm
+Theme-API=2.0
+QtVersion=6

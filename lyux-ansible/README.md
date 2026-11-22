@@ -23,6 +23,11 @@ Ce sous-projet contient toute l'infrastructure sous forme de code (**Infrastruct
    * **NSI & Maths** : VS Code, Git, C/C++, Thonny, Jupyter, Cisco Packet Tracer, Scilab, Octave.
    * **Physique-Chimie & SVT** : Avogadro, Tracker, Stellarium, ImageJ, QGIS.
    * **Sciences de l'Ingénieur / Techno** : FreeCAD, KiCad, Blender, Cura / PrusaSlicer.
+ 5. **Rôle `lyux-apps`** :
+   * Déploiement des applications depuis `../../lyux-desktop/applications` vers `/opt/lyux/apps`.
+   * `welcome` (assistant de bienvenue) déployé et lancé au démarrage par défaut.
+   * `station`, `report` et `enrollment` désactivés par défaut (à activer dans `defaults/main.yml`).
+   * Dépendances Python installées via les paquets Debian (`python3-pyqt6`, `python3-requests`, `python3-psutil`, `python3-rich`).
 
 ---
 
@@ -43,7 +48,8 @@ lyux-ansible/
     ├── lyux-kiosk/             # Verrouillage et thème KDE Plasma
     ├── lyux-profile-prof/      # Veyon Master & Outils prof
     ├── lyux-profile-eleve/     # Veyon Service & Restrictions élève
-    └── lyux-profile-salles/    # Logiciels spécifiques par discipline
+    ├── lyux-profile-salles/    # Logiciels spécifiques par discipline
+    └── lyux-apps/              # Applications clients depuis lyux-desktop/applications
 ```
 
 ---

@@ -1,0 +1,6 @@
+[Greeter]
+Theme=org.kde.breeze.desktop
+
+[Greeter][Wallpaper][org.kde.image][General]
+Image=/usr/share/wallpapers/WhiteSur/contents/images/3840x2160.jpg
+PreviewImage=/usr/share/wallpapers/WhiteSur/contents/images/3840x2160.jpg

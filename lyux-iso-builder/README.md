@@ -22,7 +22,7 @@ cd projects/lyux-iso-builder
 sudo apt install -y live-build xorriso isolinux
 sudo ./build-iso.sh
 ```
-Le fichier généré sera : `output/lyux-installer-latest.iso`.
+Le fichier généré sera : `lyux-desktop/build/lyux-installer-latest.iso`.
 
 ---
 
