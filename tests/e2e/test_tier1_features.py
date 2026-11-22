@@ -222,23 +222,23 @@ class TestFeature16_DisciplinaryProfileSciences:
 class TestFeature17_VeyonAsymmetricKeys:
     def test_veyon_private_key_contract_path(self, paths):
         """17.1 Vérifie le chemin normatif de la clef privée enseignant dans PROJECT.md"""
-        spec = (paths["root"] / "docs" / "PROJECT.md").read_text(encoding="utf-8")
+        spec = (paths["docs"] / "PROJECT.md").read_text(encoding="utf-8")
         assert "/etc/veyon/keys/private/teacher/key" in spec
 
     def test_veyon_private_key_strict_permissions(self, paths):
         """17.2 Vérifie les permissions strictes 0440 réservées au groupe enseignants"""
-        spec = (paths["root"] / "docs" / "PROJECT.md").read_text(encoding="utf-8")
+        spec = (paths["docs"] / "PROJECT.md").read_text(encoding="utf-8")
         assert "0440" in spec
         assert "root:enseignants" in spec
 
     def test_veyon_public_key_contract_path(self, paths):
         """17.3 Vérifie le chemin normatif de la clef publique sur tous les postes"""
-        spec = (paths["root"] / "docs" / "PROJECT.md").read_text(encoding="utf-8")
+        spec = (paths["docs"] / "PROJECT.md").read_text(encoding="utf-8")
         assert "/etc/veyon/keys/public/teacher/key" in spec
 
     def test_veyon_public_key_world_readable(self, paths):
         """17.4 Vérifie les permissions 0444 root:root pour la clef publique"""
-        spec = (paths["root"] / "docs" / "PROJECT.md").read_text(encoding="utf-8")
+        spec = (paths["docs"] / "PROJECT.md").read_text(encoding="utf-8")
         assert "0444" in spec
 
     def test_veyon_ports_allocated(self, expected_ports):
@@ -356,7 +356,7 @@ class TestFeature22_AutomatedLabTestRunnerScript:
 class TestFeature23_ComprehensiveE2ETestSuite:
     def test_test_infra_documentation_exists(self, paths):
         """23.1 Vérifie la présence du document maître TEST_INFRA.md à la racine"""
-        doc = paths["root"] / "docs" / "TEST_INFRA.md"
+        doc = paths["docs"] / "TEST_INFRA.md"
         assert doc.exists()
         content = doc.read_text(encoding="utf-8")
         assert "TEST_INFRA.md" in content
@@ -384,7 +384,7 @@ class TestFeature23_ComprehensiveE2ETestSuite:
 
     def test_project_specification_matrix_documented(self, paths):
         """23.5 Vérifie que PROJECT.md définit les 24 fonctionnalités dans la matrice"""
-        spec = (paths["root"] / "docs" / "PROJECT.md").read_text(encoding="utf-8")
+        spec = (paths["docs"] / "PROJECT.md").read_text(encoding="utf-8")
         assert "Feature Inventory" in spec
         for i in range(1, 25):
             assert f"| {i} |" in spec

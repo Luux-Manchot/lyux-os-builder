@@ -210,23 +210,23 @@ class TestFeature16_SciencesBoundaries:
 class TestFeature17_VeyonKeysBoundaries:
     def test_private_key_cannot_be_accessible_to_students(self, paths):
         """17.1 La clef privée n'est jamais accessible au groupe eleves"""
-        spec = (paths["root"] / "docs" / "PROJECT.md").read_text(encoding="utf-8")
+        spec = (paths["docs"] / "PROJECT.md").read_text(encoding="utf-8")
         assert "root:enseignants" in spec
         assert "root:eleves" not in spec
 
     def test_private_key_mode_not_world_readable(self, paths):
         """17.2 Le mode de la clef privée interdit tout droit pour les autres (mode 0440)"""
-        spec = (paths["root"] / "docs" / "PROJECT.md").read_text(encoding="utf-8")
+        spec = (paths["docs"] / "PROJECT.md").read_text(encoding="utf-8")
         assert "0440" in spec
 
     def test_public_key_world_readable_for_service(self, paths):
         """17.3 Le mode de la clef publique autorise la lecture à tous (mode 0444)"""
-        spec = (paths["root"] / "docs" / "PROJECT.md").read_text(encoding="utf-8")
+        spec = (paths["docs"] / "PROJECT.md").read_text(encoding="utf-8")
         assert "0444" in spec
 
     def test_veyon_key_directories_separation(self, paths):
         """17.4 Ségrégation stricte des dossiers private/teacher et public/teacher"""
-        spec = (paths["root"] / "docs" / "PROJECT.md").read_text(encoding="utf-8")
+        spec = (paths["docs"] / "PROJECT.md").read_text(encoding="utf-8")
         assert "/etc/veyon/keys/private" in spec
         assert "/etc/veyon/keys/public" in spec
 
@@ -332,7 +332,7 @@ class TestFeature22_AutomatedLabRunnerBoundaries:
 class TestFeature23_E2ESuiteBoundaries:
     def test_test_infra_contains_all_milestones(self, paths):
         """23.1 TEST_INFRA.md documente l'ensemble des jalons M1 à M6"""
-        content = (paths["root"] / "docs" / "TEST_INFRA.md").read_text(encoding="utf-8")
+        content = (paths["docs"] / "TEST_INFRA.md").read_text(encoding="utf-8")
         for m in ["Tier 1", "Tier 2", "Tier 3", "Tier 4"]:
             assert m in content
 
