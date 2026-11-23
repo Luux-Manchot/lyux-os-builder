@@ -60,7 +60,11 @@ class TestTier3Interactions:
         """3.8 Interaction Apt-Cacher-NG : Déclaration miroir preseed et configuration proxy Ansible"""
         # Preseed configure le miroir proxy sur le port 3142
         preseed_content = preseed_iso_path.read_text(encoding="utf-8")
-        assert ":3142" in preseed_content
+        # Le proxy est désormais injecté au build (aucune IP d'établissement figée)
+        assert "mirror/http/proxy" in preseed_content
+        assert "@@LYUX_APT_PROXY@@" in preseed_content
+        build_script = (paths["iso_builder"] / "build-client-iso.sh").read_text(encoding="utf-8")
+        assert "LYUX_APT_PROXY" in build_script
 
         # Rôle base déploie 01apt-cacher-proxy.j2
         base_tasks = (paths["ansible"] / "roles" / "lyux-base" / "tasks" / "main.yml").read_text(encoding="utf-8")

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Script de génération de l'ISO Serveur Appliance LyuX (Debian 12 / Cockpit)
+# Script de génération de l'ISO Serveur Appliance LyuX (Debian 13 / Cockpit)
 # ==============================================================================
 set -euo pipefail
 
@@ -15,8 +15,8 @@ OUTPUT_DIR="$REPO_ROOT/lyux-server/build"
 
 mkdir -p "$WORK_DIR" "$OUTPUT_DIR"
 
-# 1. Image source Debian Netinst officielle (Debian 12.8 / 13)
-DEBIAN_ISO_URL="https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.8.0-amd64-netinst.iso"
+# 1. Image source Debian Netinst officielle (Debian 13.8)
+DEBIAN_ISO_URL="https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.8.0-amd64-netinst.iso"
 ORIG_ISO="$WORK_DIR/debian-netinst.iso"
 
 if [ ! -f "$ORIG_ISO" ]; then
@@ -40,7 +40,7 @@ cp "$REPO_ROOT/os-builder/lyux-lab-vm/configs/debian_server_preseed_auto.cfg" "$
 # 4. Embarquement du module Cockpit LyuX Hub
 echo "🐧 4. Embarquement de l'extension Cockpit LyuX Hub..."
 mkdir -p "$WORK_DIR/iso_root/lyux-payload/cockpit-lyux"
-cp -r "$REPO_ROOT/lyux-server/cockpit-lyux/"* "$WORK_DIR/iso_root/lyux-payload/cockpit-lyux/"
+cp -r "$REPO_ROOT/lyux-server/apps/cockpit/lyux/"* "$WORK_DIR/iso_root/lyux-payload/cockpit-lyux/"
 
 # 5. Configuration Isolinux pour boot 100% automatique
 echo "🚀 5. Configuration du menu de démarrage rapide (Zéro question)..."

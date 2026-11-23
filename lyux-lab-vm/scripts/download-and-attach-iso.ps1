@@ -1,11 +1,11 @@
 # ==============================================================================
-# Script de telechargement et attachement de l'ISO Debian 12 aux VMs
+# Script de telechargement et attachement de l'ISO Debian 13 aux VMs
 # ==============================================================================
 
 $VBox = "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe"
 $IsoDir = Join-Path $PSScriptRoot "..\iso"
 $IsoPath = "$IsoDir\debian-netinst.iso"
-$IsoUrl = "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.8.0-amd64-netinst.iso"
+$IsoUrl = "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.8.0-amd64-netinst.iso"
 
 # 1. Creation du dossier ISO
 if (-not (Test-Path $IsoDir)) {
@@ -14,12 +14,12 @@ if (-not (Test-Path $IsoDir)) {
 
 # 2. Telechargement si non existant
 if (-not (Test-Path $IsoPath)) {
-    Write-Host "[*] Telechargement de l'ISO Debian 12 Netinst (~600 Mo)..." -ForegroundColor Yellow
+    Write-Host "[*] Telechargement de l'ISO Debian 13 Netinst (~600 Mo)..." -ForegroundColor Yellow
     Write-Host "    Source : $IsoUrl" -ForegroundColor Gray
     Invoke-WebRequest -Uri $IsoUrl -OutFile $IsoPath
     Write-Host "[+] Telechargement termine !" -ForegroundColor Green
 } else {
-    Write-Host "[i] L'ISO Debian 12 est deja presente : $IsoPath" -ForegroundColor Green
+    Write-Host "[i] L'ISO Debian 13 est deja presente : $IsoPath" -ForegroundColor Green
 }
 
 # 3. Eteindre la VM si en cours
@@ -36,4 +36,4 @@ Write-Host "[*] Insertion de l'ISO dans le lecteur DVD des 3 VMs..." -Foreground
 & $VBox storageattach "LyuX-Client-Prof" --storagectl "SATA" --port 1 --device 0 --type dvddrive --medium $IsoPath
 & $VBox storageattach "LyuX-Client-Eleve" --storagectl "SATA" --port 1 --device 0 --type dvddrive --medium $IsoPath
 
-Write-Host "[+] L'ISO Debian 12 est prete et inseree dans vos 3 VMs !" -ForegroundColor Green
+Write-Host "[+] L'ISO Debian 13 est prete et inseree dans vos 3 VMs !" -ForegroundColor Green

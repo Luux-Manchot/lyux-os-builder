@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Script de génération de l'ISO Client LyuX (Debian 12 / KDE Plasma / Enrôlement)
+# Script de génération de l'ISO Client LyuX (Debian 13 / KDE Plasma / Enrôlement)
 # ==============================================================================
 set -euo pipefail
+
+for tool in xorriso curl git; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+        echo "ERREUR : $tool est requis pour generer l'ISO (apt install xorriso curl git)." >&2
+        exit 1
+    fi
+done
 
 echo "======================================================="
 echo "💿 Compilation de l'ISO Client LyuX (Poste Élève / Prof)"
@@ -15,15 +22,14 @@ OUTPUT_DIR="$REPO_ROOT/lyux-desktop/build"
 
 mkdir -p "$WORK_DIR" "$OUTPUT_DIR"
 
-# 1. Image source Debian Netinst
-ORIG_ISO="/tmp/debian-netinst.iso"
+# 1. Image source Debian 13 Trixie Netinst
+# LYUX_DEBIAN_ISO permet de fournir une image locale déjà validée.
+# Ne pas réutiliser l'ancien os-builder/lyux-lab-vm/iso/debian-netinst.iso (Debian 12).
+DEBIAN_ISO_URL="https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.8.0-amd64-netinst.iso"
+ORIG_ISO="${LYUX_DEBIAN_ISO:-/tmp/debian-netinst-13.8.0.iso}"
 if [ ! -f "$ORIG_ISO" ]; then
-    if [ -f "$REPO_ROOT/os-builder/lyux-lab-vm/iso/debian-netinst.iso" ]; then
-        cp "$REPO_ROOT/os-builder/lyux-lab-vm/iso/debian-netinst.iso" "$ORIG_ISO"
-    else
-        echo "⬇️ Téléchargement image Debian Netinst..."
-        curl -Lo "$ORIG_ISO" "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.8.0-amd64-netinst.iso" || true
-    fi
+    echo "⬇️ Téléchargement de $DEBIAN_ISO_URL ..."
+    curl -fL -o "$ORIG_ISO" "$DEBIAN_ISO_URL"
 fi
 
 # 2. Extraction du contenu de l'ISO
@@ -40,6 +46,18 @@ fi
 echo "⚙️ Injection du preseed d'installation client..."
 cp "$REPO_ROOT/os-builder/lyux-iso-builder/preseed/preseed.cfg" "$WORK_DIR/iso_root/preseed.cfg"
 
+# Mot de passe admin temporaire : fourni par l'exploitant ou généré à chaque build.
+# Jamais de valeur fixe dans le dépôt ; changement imposé par l'OOBE au premier boot.
+if [ -z "${LYUX_ADMIN_PASSWORD:-}" ]; then
+    LYUX_ADMIN_PASSWORD="$(tr -dc 'A-Za-z0-9!@#' < /dev/urandom | head -c 16)"
+fi
+sed -i "s|@@LYUX_ADMIN_PASSWORD@@|$LYUX_ADMIN_PASSWORD|g" "$WORK_DIR/iso_root/preseed.cfg"
+echo "⚠️  Mot de passe admin temporaire (à changer au 1er boot) : $LYUX_ADMIN_PASSWORD"
+
+# Proxy apt de l'établissement, optionnel (ex: http://192.168.10.1:3142).
+LYUX_APT_PROXY="${LYUX_APT_PROXY:-}"
+sed -i "s|@@LYUX_APT_PROXY@@|$LYUX_APT_PROXY|g" "$WORK_DIR/iso_root/preseed.cfg"
+
 # 4. Embarquement des payloads applicatifs LyuX
 echo "🐧 Embarquement des applications client (LyuX Enrollment & Welcome)..."
 mkdir -p "$WORK_DIR/iso_root/lyux-payload/enrollment"
@@ -47,15 +65,46 @@ mkdir -p "$WORK_DIR/iso_root/lyux-payload/welcome"
 cp -r "$REPO_ROOT/lyux-desktop/applications/enrollment/"* "$WORK_DIR/iso_root/lyux-payload/enrollment/" 2>/dev/null || true
 cp -r "$REPO_ROOT/lyux-desktop/applications/welcome/"* "$WORK_DIR/iso_root/lyux-payload/welcome/" 2>/dev/null || true
 
-# 5. Configuration Isolinux pour démarrage d'installation
-echo "🚀 Configuration du menu Isolinux bootable..."
-if [ -f "$WORK_DIR/iso_root/isolinux/isolinux.cfg" ]; then
-    cat << 'EOF' > "$WORK_DIR/iso_root/isolinux/txt.cfg"
+# 4b. Visuel OBLIGATOIRE : profil graphique LyuX + thèmes embarqués.
+# Le rendu doit être identique dès l'installation, même sans réseau dans
+# l'établissement : les thèmes amont sont donc copiés dans l'ISO au build.
+PROFILE_PAYLOAD="$WORK_DIR/iso_root/lyux-payload/desktop-profile"
+echo "🎨 Embarquement du profil graphique LyuX (SDDM/KDE/lockscreen/Kickoff)..."
+mkdir -p "$PROFILE_PAYLOAD"
+cp -r "$REPO_ROOT/os-builder/lyux-desktop-profile/." "$PROFILE_PAYLOAD/"
+mkdir -p "$PROFILE_PAYLOAD/themes"
+for theme in Orchis-kde WhiteSur-kde Tela-circle-icon-theme; do
+    echo "   ⬇️  $theme..."
+    git clone --depth 1 "https://github.com/vinceliuice/${theme}.git" "$PROFILE_PAYLOAD/themes/$theme"
+    rm -rf "$PROFILE_PAYLOAD/themes/$theme/.git"
+done
+
+# 5. Configuration Isolinux & GRUB pour démarrage automatique (Zéro question)
+echo "🚀 Configuration du démarrage automatique (Isolinux BIOS & GRUB EFI)..."
+if [ -d "$WORK_DIR/iso_root/isolinux" ]; then
+    cat << 'EOF' > "$WORK_DIR/iso_root/isolinux/isolinux.cfg"
+# LyuX Client Installer
 default install
+prompt 0
+timeout 10
+
 label install
     menu label ^Installer LyuX Client OS (Enrolement Poste)
     kernel /install.amd/vmlinuz
-    append vga=788 initrd=/install.amd/initrd.gz auto=true priority=critical file=/cdrom/preseed.cfg --- quiet
+    append vga=788 initrd=/install.amd/gtk/initrd.gz auto=true priority=critical file=/cdrom/preseed.cfg debian-installer/locale=fr_FR.UTF-8 console-setup/layoutcode=fr keyboard-configuration/xkb-keymap=fr --- quiet
+EOF
+fi
+
+if [ -f "$WORK_DIR/iso_root/boot/grub/grub.cfg" ]; then
+    cat << 'EOF' > "$WORK_DIR/iso_root/boot/grub/grub.cfg"
+set default="0"
+set timeout=1
+
+menuentry 'Installer LyuX Client OS (Automatique)' {
+    set background_color=black
+    linux    /install.amd/vmlinuz vga=788 auto=true priority=critical file=/cdrom/preseed.cfg debian-installer/locale=fr_FR.UTF-8 console-setup/layoutcode=fr keyboard-configuration/xkb-keymap=fr --- quiet
+    initrd   /install.amd/gtk/initrd.gz
+}
 EOF
 fi
 

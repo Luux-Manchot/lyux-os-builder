@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "debian/bookworm64"
+  config.vm.box = "debian/trixie64"
 
   # Synchronisation de la racine du depot pour acces a /vagrant/projects
   config.vm.synced_folder "../../", "/vagrant"

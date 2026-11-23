@@ -16,11 +16,11 @@ ISO_NAME="lyux-installer-latest.iso"
 mkdir -p "$WORK_DIR" "$OUTPUT_DIR"
 
 # 1. Téléchargement de l'image Debian Netinst officielle si non présente
-DEBIAN_ISO_URL="https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.8.0-amd64-netinst.iso"
+DEBIAN_ISO_URL="https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.8.0-amd64-netinst.iso"
 ORIG_ISO="$WORK_DIR/debian-netinst.iso"
 
 if [ ! -f "$ORIG_ISO" ]; then
-    echo "⬇️ Téléchargement de l'image source Debian 12..."
+    echo "⬇️ Téléchargement de l'image source Debian 13..."
     curl -Lo "$ORIG_ISO" "$DEBIAN_ISO_URL" || true
 fi
 

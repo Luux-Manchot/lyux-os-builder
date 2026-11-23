@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Script de provisionnement automatique du Serveur LyuX sous Vagrant / Debian 12
+# Script de provisionnement automatique du Serveur LyuX sous Vagrant / Debian 13
 set -euo pipefail
 
 echo "======================================================"

@@ -6,6 +6,21 @@ set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
+# Les thèmes sont embarqués dans l'ISO sous ${SCRIPT_DIR}/themes/ pour un rendu
+# identique même sans accès réseau lors de l'installation. En fallback (exécution
+# directe sur une machine déjà installée), on retombe sur les dépôts amont.
+fetch_theme() {
+    local name="$1" dest="$2"
+    rm -rf "$dest"
+    if [ -d "${SCRIPT_DIR}/themes/${name}" ]; then
+        echo "   📦 ${name} : depuis le payload embarqué"
+        cp -a "${SCRIPT_DIR}/themes/${name}" "$dest"
+    else
+        echo "   🌐 ${name} : depuis GitHub (payload absent)"
+        git clone --depth 1 "https://github.com/vinceliuice/${name}.git" "$dest"
+    fi
+}
+
 echo "======================================================"
 echo "🎨 Déploiement du Thème Graphique Officiel LyuX"
 echo "======================================================"
@@ -17,8 +32,7 @@ apt-get install -y git curl libglib2.0-bin fonts-inter || true
 # 2. Installation du thème Orchis KDE
 if [ ! -d "/usr/share/plasma/look-and-feel/com.github.vinceliuice.Orchis" ]; then
     echo "📦 Installation de Orchis KDE..."
-    rm -rf /tmp/Orchis-kde
-    git clone --depth 1 https://github.com/vinceliuice/Orchis-kde.git /tmp/Orchis-kde
+    fetch_theme Orchis-kde /tmp/Orchis-kde
     (cd /tmp/Orchis-kde && ./install.sh)
     rm -rf /tmp/Orchis-kde
 fi
@@ -26,8 +40,7 @@ fi
 # 3. Installation des décorations & fonds d'écran WhiteSur
 if [ ! -d "/usr/share/aurorae/themes/WhiteSur-Sharp" ] || [ ! -d "/usr/share/wallpapers/WhiteSur" ]; then
     echo "📦 Installation de WhiteSur (Décorations & Wallpapers)..."
-    rm -rf /tmp/WhiteSur-kde
-    git clone --depth 1 https://github.com/vinceliuice/WhiteSur-kde.git /tmp/WhiteSur-kde
+    fetch_theme WhiteSur-kde /tmp/WhiteSur-kde
     (cd /tmp/WhiteSur-kde && ./install.sh -w default sharp)
     rm -rf /tmp/WhiteSur-kde
 fi
@@ -35,8 +48,7 @@ fi
 # 4. Installation des icônes Tela-circle
 if [ ! -d "/usr/share/icons/Tela-circle" ]; then
     echo "📦 Installation du pack d'icônes Tela-circle..."
-    rm -rf /tmp/Tela-circle
-    git clone --depth 1 https://github.com/vinceliuice/Tela-circle-icon-theme.git /tmp/Tela-circle
+    fetch_theme Tela-circle-icon-theme /tmp/Tela-circle
     (cd /tmp/Tela-circle && ./install.sh -d /usr/share/icons standard)
     rm -rf /tmp/Tela-circle
 fi
@@ -89,6 +101,10 @@ if [ -f "${SCRIPT_DIR}/sddm/99-lyux-theme.conf" ]; then
     mkdir -p /etc/sddm.conf.d
     cp "${SCRIPT_DIR}/sddm/99-lyux-theme.conf" /etc/sddm.conf.d/99-lyux-theme.conf
     chmod 644 /etc/sddm.conf.d/99-lyux-theme.conf
+fi
+# X11 uniquement : la session Wayland est masquée pour éviter tout retour en arrière.
+if [ -f /usr/share/wayland-sessions/plasma.desktop ]; then
+    mv /usr/share/wayland-sessions/plasma.desktop /usr/share/wayland-sessions/plasma.desktop.disabled
 fi
 
 # 10. Écran de Verrouillage Moderne (KScreenLocker)

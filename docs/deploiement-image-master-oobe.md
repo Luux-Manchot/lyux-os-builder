@@ -8,7 +8,7 @@
 
 Pour équiper 200 à 500 ordinateurs dans un lycée sans passer par des heures d'installation manuelle par machine, **LyuX** adopte le standard industriel utilisé par les constructeurs (OEM) et les déploiements Windows d'entreprise :
 
-1. **L'Image Disque Master Pré-construite** : Le système Linux (Debian 12 + KDE Plasma + pilotes graphiques + outils scolaires) est pré-installé dans une image disque (`.raw`, `.img`, `.vdi` ou Clonezilla).
+1. **L'Image Disque Master Pré-construite** : Le système Linux (Debian 13 Trixie + KDE Plasma + pilotes graphiques + outils scolaires) est pré-installé dans une image disque (`.raw`, `.img`, `.vdi` ou Clonezilla).
 2. **Le Déploiement Disque (1 à 2 minutes)** : L'image est écrite sur le disque SSD du PC (par clé USB rapide ou multicast réseau Clonezilla / FOG).
 3. **Le 1er Allumage (First Boot OOBE)** : La machine s'allume instantanément sur l'assistant graphique :
    - On confirme la langue (Français AZERTY par défaut).

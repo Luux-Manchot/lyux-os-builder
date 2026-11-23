@@ -1,5 +1,7 @@
 # Méthode de build client LyuX — la façon propre
 
+> **Nouveau guide officiel complet :** Consulter [GUIDE_NOUVELLE_METHODE_BUILD_ISO_ET_THEMES.md](file:///g:/.Pro/.Dev/Lycee/Op%C3%A9rationManchot/os-builder/docs/GUIDE_NOUVELLE_METHODE_BUILD_ISO_ET_THEMES.md) pour les détails d'intégration de l'ISO Debian 13 Netinst + Preseed et le déploiement offline du profil graphique.
+
 > Ce document remplace le dossier `client/` supprimé. Les anciens scripts restent récupérables dans l'historique Git (`git log --all -- client/`). Il décrit comment intégrer leurs fonctions dans la chaîne de build ISO sans bricolage manuel.
 
 ## 1. Principe directeur
@@ -10,7 +12,7 @@ L'architecture visée tient en 4 couches :
 
 | Couche | Emplacement | Contenu |
 | :--- | :--- | :--- |
-| 1. Base système | `lyux-master.squashfs` (capture Debian 12 + KDE) | Noyau, KDE Plasma, SSSD, réseau, outils de base |
+| 1. Base système | `lyux-master.squashfs` (capture Debian 13 Trixie + KDE) | Noyau, KDE Plasma, SSSD, réseau, outils de base |
 | 2. Surcouche système | `os-builder/lyux-ansible/roles/` | Comptes, SSSD, pam_mount, NFS, proxy apt, kiosk, services poste |
 | 3. Profil graphique | `os-builder/lyux-desktop-profile/` | KDE, SDDM, skel, lockscreen, kickoff |
 | 4. Overlay ISO | `os-builder/lyux-iso-builder/create-overlay-iso.sh` | **Uniquement l'installateur** (`zz-installer.squashfs`) |
