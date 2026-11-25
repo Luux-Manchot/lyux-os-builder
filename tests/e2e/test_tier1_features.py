@@ -28,7 +28,8 @@ class TestFeature10_KDEPlasmaDesktopBase:
     def test_preseed_iso_specifies_kde_desktop(self, preseed_iso_path):
         """10.2 Vérifie la sélection de kde-desktop dans preseed.cfg de l'ISO"""
         content = preseed_iso_path.read_text(encoding="utf-8")
-        assert "kde-desktop" in content
+        assert "tasksel/first multiselect standard" in content
+        assert "sddm xorg plasma-desktop" in content
 
     def test_sddm_display_manager_included(self, preseed_vbox_path):
         """10.3 Vérifie l'inclusion de SDDM comme gestionnaire graphique de connexion"""

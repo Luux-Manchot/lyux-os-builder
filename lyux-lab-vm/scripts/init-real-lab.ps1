@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 # Script d'Initialisation et Déploiement du Lab Réel VirtualBox LyuX (Opération Manchot)
 # Conforme aux ADR-003, ADR-007, ADR-010 et Issues #1, #3, #8, #10
 # ==============================================================================
@@ -93,7 +93,7 @@ $serverName = "LyuX-Server"
 
 # Carte 2 : NAT (Acces internet paquets debian et redirection de ports pour lab)
 & $VBox modifyvm $serverName --nic2 nat --cableconnected2 on
-& $VBox modifyvm $serverName --natpf2 "cockpit,tcp,127.0.0.1,9090,,9090"
+& $VBox modifyvm $serverName --natpf2 "admin-ui,tcp,127.0.0.1,8087,,8087"
 & $VBox modifyvm $serverName --natpf2 "samba-ldap,tcp,127.0.0.1,389,,389"
 & $VBox modifyvm $serverName --natpf2 "samba-krb5,tcp,127.0.0.1,88,,88"
 & $VBox modifyvm $serverName --natpf2 "api,tcp,127.0.0.1,8000,,8000"

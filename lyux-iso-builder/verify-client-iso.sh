@@ -18,14 +18,14 @@ if [ ! -f "$ISO" ]; then
     exit 1
 fi
 
-TMP_DIR="$(mktemp -d)"
+mkdir -p /var/tmp
+TMP_DIR="$(mktemp -d /var/tmp/lyux-iso-check.XXXXXX)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 echo "🔍 Vérification de $ISO"
-xorriso -indev "$ISO" -find / -print 2>/dev/null > "$TMP_DIR/files.lst" || true
 
 check_path() {
-    if grep -qF "$1" "$TMP_DIR/files.lst"; then
+    if xorriso -indev "$ISO" -lsdl "$1" 2>/dev/null | grep -qF "$1"; then
         echo "  ✅ $1"
     else
         echo "  ❌ MANQUANT : $1"
@@ -56,7 +56,26 @@ check_path /lyux-payload/desktop-profile/themes/Tela-circle-icon-theme
 
 echo "--- Contenu du preseed (sécurité) ---"
 xorriso -osirrox on -indev "$ISO" -extract /preseed.cfg "$TMP_DIR/preseed.cfg" 2>/dev/null || true
-for secret in LyuxDeploy2026 LyuX@2026 '192.168.10.' '192.168.100.' '@@' 'chage -d 0'; do
+for token in \
+    'netcfg/enable boolean true' \
+    'netcfg/choose_interface select auto' \
+    'apt-setup/use_mirror boolean true' \
+    'mirror/http/hostname string deb.debian.org' \
+    'tasksel/first multiselect standard' \
+    'sddm xorg plasma-desktop' \
+    'dpkg-query -W'; do
+    if grep -qF "$token" "$TMP_DIR/preseed.cfg"; then
+        echo "  ✅ $token"
+    else
+        echo "  ❌ Manquant dans le preseed : $token"
+        FAIL=1
+    fi
+done
+if grep -qF 'tasksel/first multiselect standard, kde-desktop' "$TMP_DIR/preseed.cfg"; then
+    echo "  ❌ Le profil KDE complet est sélectionné au lieu du socle minimal"
+    FAIL=1
+fi
+for secret in LyuxDeploy2026 LyuX@2026 '192.168.10.' '192.168.100.' '@@LYUX_ADMIN_PASSWORD@@' '@@LYUX_APT_PROXY@@' 'chage -d 0'; do
     if grep -qF "$secret" "$TMP_DIR/preseed.cfg"; then
         echo "  ❌ Valeur figée résiduelle dans le preseed : $secret"
         FAIL=1
@@ -64,9 +83,12 @@ for secret in LyuxDeploy2026 LyuX@2026 '192.168.10.' '192.168.100.' '@@' 'chage 
         echo "  ✅ Absent : $secret"
     fi
 done
-grep -qF 'install-desktop-profile.sh' "$TMP_DIR/preseed.cfg" \
-    && echo "  ✅ late_command applique le profil graphique" \
-    || { echo "  ❌ late_command n'applique pas le profil graphique"; FAIL=1; }
+if grep -qF 'install-desktop-profile.sh' "$TMP_DIR/preseed.cfg"; then
+    echo "  ❌ late_command tente d'appliquer le profil graphique pendant Debian Installer"
+    FAIL=1
+else
+    echo "  ✅ profil graphique différé après le premier reboot"
+fi
 
 echo "--- SDDM / X11 ---"
 xorriso -osirrox on -indev "$ISO" \

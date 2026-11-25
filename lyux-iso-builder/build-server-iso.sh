@@ -37,10 +37,8 @@ fi
 echo "⚙️ 3. Injection du preseed d'installation automatique..."
 cp "$REPO_ROOT/os-builder/lyux-lab-vm/configs/debian_server_preseed_auto.cfg" "$WORK_DIR/iso_root/preseed.cfg"
 
-# 4. Embarquement du module Cockpit LyuX Hub
-echo "🐧 4. Embarquement de l'extension Cockpit LyuX Hub..."
-mkdir -p "$WORK_DIR/iso_root/lyux-payload/cockpit-lyux"
-cp -r "$REPO_ROOT/lyux-server/apps/cockpit/lyux/"* "$WORK_DIR/iso_root/lyux-payload/cockpit-lyux/"
+# 4. Cockpit natif reste uniquement système (l'interface métier est admin.lyux.lan / port 8087)
+echo "🐧 4. Préparation du socle serveur (Admin UI conteneurisée sur 8087)..."
 
 # 5. Configuration Isolinux pour boot 100% automatique
 echo "🚀 5. Configuration du menu de démarrage rapide (Zéro question)..."

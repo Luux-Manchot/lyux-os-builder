@@ -1,12 +1,14 @@
 # 💿 Guide de Build Client ISO & Intégration du Profil Graphique LyuX
 
-> **Référence officielle pour la création de l'ISO Client LyuX (Debian 13 Trixie) et le déploiement automatisé du thème graphique sur mesure.**
+> **État : décrit la chaîne Preseed actuelle, qui embarque encore le profil graphique. Ce n'est pas l'architecture cible de personnalisation serveur.**
+>
+> La cible proposée est un client Debian 13 générique, suivi d'un enrôlement puis de l'application d'un profil versionné fourni par le serveur. Voir [PLAN_CLIENT_UNIVERSEL_PROFILS_SERVEUR.md](PLAN_CLIENT_UNIVERSEL_PROFILS_SERVEUR.md) pour les phases, les portes de validation et l'évaluation de Calamares. Calamares reste un candidat, pas une migration déjà réalisée.
 
 ---
 
 ## 1. Vue d'ensemble de l'Architecture
 
-La nouvelle méthode de build repose sur une **image Debian 13 (Trixie) Netinst officielle**, enrichie d'une installation **Preseed 100% automatisée** et d'un **payload autonome embarqué** directement sur le média d'installation.
+La chaîne actuellement présente dans le dépôt repose sur une **image Debian 13 (Trixie) Netinst officielle**, enrichie d'une installation **Preseed automatisée** et d'un **payload graphique/applicatif embarqué** directement sur le média. Cette approche est conservée pour les tests de l'installateur, mais elle embarque les thèmes dans chaque ISO et ne réalise pas encore le provisionnement dynamique cible depuis le serveur.
 
 ### Schéma du Pipeline
 
@@ -52,9 +54,10 @@ sudo apt install -y xorriso curl git isolinux 7z
 ```bash
 cd os-builder/lyux-iso-builder
 
-# Optionnel : définir un mot de passe admin temporaire et un proxy APT local
-export LYUX_ADMIN_PASSWORD="LyuxAdmin2026!"
-# export LYUX_APT_PROXY="http://192.168.10.1:3142"
+# Optionnel : injecter un secret temporaire dans l'environnement du build.
+# Ne jamais inscrire un vrai mot de passe ou une adresse d'établissement dans la documentation.
+export LYUX_ADMIN_PASSWORD="<secret-temporaire>"
+# export LYUX_APT_PROXY="<proxy-approuve>"
 
 ./build-client-iso.sh
 ```

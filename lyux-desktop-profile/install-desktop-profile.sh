@@ -27,7 +27,7 @@ echo "======================================================"
 
 # 1. Dépendances requises
 apt-get update -qq
-apt-get install -y git curl libglib2.0-bin fonts-inter || true
+apt-get install -y git curl libglib2.0-bin fonts-inter
 
 # 2. Installation du thème Orchis KDE
 if [ ! -d "/usr/share/plasma/look-and-feel/com.github.vinceliuice.Orchis" ]; then
@@ -85,9 +85,9 @@ fi
 echo "kernel.printk = 1 1 1 1" > /etc/sysctl.d/20-quiet-boot.conf
 chmod 644 /etc/sysctl.d/20-quiet-boot.conf
 sysctl -p /etc/sysctl.d/20-quiet-boot.conf 2>/dev/null || true
-apt-get install -y plymouth plymouth-theme-breeze 2>/dev/null || true
-plymouth-set-default-theme -R breeze 2>/dev/null || true
-update-grub 2>/dev/null || true
+apt-get install -y plymouth plymouth-theme-breeze
+plymouth-set-default-theme -R breeze
+update-grub
 
 # 9. Écran de Connexion SDDM Moderne LyuX
 echo "🖥️ Déploiement du thème SDDM LyuX..."
