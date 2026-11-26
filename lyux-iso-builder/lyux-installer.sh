@@ -528,6 +528,19 @@ EOF
     PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin chroot "$TARGET_MNT" systemctl set-default graphical.target >> "$INSTALL_LOG" 2>&1 || true
     PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin chroot "$TARGET_MNT" systemctl enable sddm >> "$INSTALL_LOG" 2>&1 || true
 
+    # 5b. Installation automatique de lyux-desktop-core depuis le serveur APT LyuX
+    # Configure PAM + NSS + timer de sync utilisateurs dès l'installation
+    log "Installation de lyux-desktop-core depuis le serveur LyuX ($SERVER_IP)..."
+    DEB_URL="http://$SERVER_IP:8000/api/v1/apt-repo/pool/main/lyux-desktop-core_$(cat /cdrom/lyux-payload/enrollment/../../../VERSION 2>/dev/null || echo '0.5.0-beta.2')_all.deb"
+    DEB_TMP="$TARGET_MNT/tmp/lyux-desktop-core.deb"
+    if curl -sf --connect-timeout 5 -o "$DEB_TMP" "$DEB_URL" 2>>"$INSTALL_LOG"; then
+        PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin chroot "$TARGET_MNT" dpkg -i /tmp/lyux-desktop-core.deb >> "$INSTALL_LOG" 2>&1 || true
+        rm -f "$DEB_TMP"
+        log "lyux-desktop-core installé et PAM/NSS configurés."
+    else
+        log "AVERTISSEMENT : impossible de télécharger lyux-desktop-core depuis $DEB_URL — PAM/NSS à configurer après enrôlement."
+    fi
+
     echo 95; sleep 1
     log "Notification API au serveur central ($SERVER_IP)..."
     curl -s -X POST "http://$SERVER_IP:8000/api/v1/parc/enroll" \
