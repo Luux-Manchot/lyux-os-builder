@@ -165,7 +165,7 @@ Calamares ne sera retenu que si le prototype prouve ces critères sans perdre le
 
 ## 10. Validation de l'étape 3 — Manifeste de profil, Ed25519 et maintenance locale (25 novembre 2026)
 
-- [x] **Schéma & chaîne Ed25519** : [SCHEMA_MANIFESTE_PROFIL.md](SCHEMA_MANIFESTE_PROFIL.md), `profile_trust.py` (clés Ed25519 hors dépôt Git, rotation avec clé de secours, signature détachée).
+- [x] **Schéma & chaîne Ed25519** : [Schéma du manifeste de profil](https://github.com/Luux-Manchot/lyux-server/wiki/Schema-manifeste-profil) *(wiki `lyux-server`)*, `profile_trust.py` (clés Ed25519 hors dépôt Git, rotation avec clé de secours, signature détachée).
 - [x] **Registre serveur & endpoints** : `release_registry.py`, `GET /api/v1/client/profile-manifest`, `GET /api/v1/client/public-keys`, `POST /api/v1/releases/{id}/{sign,publish,revoke,rollback}`, journal d'audit.
 - [x] **Vérification client & rollback** : `profile_manifest.py` (états `pending` -> `applied` / `rolling_back`, vérification Ed25519 + SHA-256 + compatibilité + portée avant application).
 - [x] **Maintenance locale sécurisée** : `maintenance.py` (FIDO2/U2F, jeton USB Ed25519 lié au numéro de série `udev`, mot de passe admin PBKDF2).
