@@ -22,6 +22,7 @@ def test_package_release_creates_versioned_folder_iso_and_manifest(tmp_path):
 
     rel_dir = releases_root / "0.5.0-beta.1"
     assert rel_dir.is_dir()
+    assert (rel_dir / "lyux-desktop-core_0.5.0-beta.1_all.deb").is_file()
     assert (rel_dir / "lyux-desktop-0.5.0-beta.1.iso").is_file()
     assert (rel_dir / "SHA256SUMS").is_file()
     assert (releases_root / "latest-beta.json").is_file()
@@ -30,5 +31,7 @@ def test_package_release_creates_versioned_folder_iso_and_manifest(tmp_path):
     assert manifest["version"] == "0.5.0-beta.1"
     assert manifest["channel"] == "beta"
     assert manifest["prerelease"] is True
+    assert manifest["deb_package"]["filename"] == "lyux-desktop-core_0.5.0-beta.1_all.deb"
+    assert len(manifest["deb_package"]["sha256"]) == 64
     assert manifest["iso"]["filename"] == "lyux-desktop-0.5.0-beta.1.iso"
     assert len(manifest["iso"]["sha256"]) == 64

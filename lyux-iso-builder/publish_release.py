@@ -14,9 +14,12 @@ Pour chaque version choisie (ex. 0.5.0-beta.1) :
 import argparse
 import datetime
 import hashlib
+import io
 import json
 import shutil
 import subprocess
+import tarfile
+import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -40,6 +43,96 @@ def _sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def _ar_member(name: str, payload: bytes, mtime: int) -> bytes:
+    header = (
+        f"{name:<16}"
+        f"{mtime:<12}"
+        f"{'0':<6}"
+        f"{'0':<6}"
+        f"{'100644':<8}"
+        f"{len(payload):<10}"
+        "`\n"
+    ).encode("ascii")
+    out = header + payload
+    if len(out) % 2 == 1:
+        out += b"\n"
+    return out
+
+
+def build_desktop_core_deb(version: str, output_dir: Path) -> Path:
+    """
+    Construit le paquet Debian `lyux-desktop-core_<version>_all.deb` en Python pur
+    (sans dépendre de dpkg-deb sous Windows) pour les mises à jour in-system.
+    """
+    ver = version.strip()
+    deb_name = f"lyux-desktop-core_{ver}_all.deb"
+    deb_path = output_dir / deb_name
+    mtime = int(time.time())
+
+    control_txt = (
+        "Package: lyux-desktop-core\n"
+        f"Version: {ver}\n"
+        "Section: admin\n"
+        "Priority: optional\n"
+        "Architecture: all\n"
+        "Maintainer: LyuX <contact@flowcrea.fr>\n"
+        "Description: LyuX Desktop core (OOBE, profile applier, maintenance & PAM session sync)\n"
+    ).encode("utf-8")
+
+    postinst_txt = (
+        "#!/bin/sh\n"
+        "set -e\n"
+        "chmod +x /opt/lyux/apps/enrollment/scripts/*.sh 2>/dev/null || true\n"
+        "exit 0\n"
+    ).encode("utf-8")
+
+    ctrl_buf = io.BytesIO()
+    with tarfile.open(fileobj=ctrl_buf, mode="w:gz") as tf:
+        for fname, content, mode in (
+            ("./control", control_txt, 0o644),
+            ("./postinst", postinst_txt, 0o755),
+        ):
+            ti = tarfile.TarInfo(fname)
+            ti.size = len(content)
+            ti.mode = mode
+            ti.mtime = mtime
+            tf.addfile(ti, io.BytesIO(content))
+
+    data_buf = io.BytesIO()
+    enrollment_root = REPO_ROOT / "lyux-desktop" / "applications" / "enrollment"
+    with tarfile.open(fileobj=data_buf, mode="w:gz") as tf:
+        ver_bytes = (ver + "\n").encode("utf-8")
+        vi = tarfile.TarInfo("./opt/lyux/VERSION")
+        vi.size = len(ver_bytes)
+        vi.mode = 0o644
+        vi.mtime = mtime
+        tf.addfile(vi, io.BytesIO(ver_bytes))
+
+        for sub in ("src", "scripts"):
+            sub_dir = enrollment_root / sub
+            if not sub_dir.exists():
+                continue
+            for file_path in sorted(sub_dir.rglob("*")):
+                if not file_path.is_file() or "__pycache__" in file_path.parts:
+                    continue
+                rel = file_path.relative_to(enrollment_root).as_posix()
+                raw = file_path.read_bytes()
+                ti = tarfile.TarInfo(f"./opt/lyux/apps/enrollment/{rel}")
+                ti.size = len(raw)
+                ti.mode = 0o755 if file_path.suffix == ".sh" else 0o644
+                ti.mtime = mtime
+                tf.addfile(ti, io.BytesIO(raw))
+
+    ar_bytes = (
+        b"!<arch>\n"
+        + _ar_member("debian-binary", b"2.0\n", mtime)
+        + _ar_member("control.tar.gz", ctrl_buf.getvalue(), mtime)
+        + _ar_member("data.tar.gz", data_buf.getvalue(), mtime)
+    )
+    deb_path.write_bytes(ar_bytes)
+    return deb_path
+
+
 def package_release(
     version: str,
     *,
@@ -61,6 +154,16 @@ def package_release(
     target_iso_name = f"lyux-desktop-{ver}.iso"
     target_iso = rel_dir / target_iso_name
     iso_info: Optional[Dict[str, Any]] = None
+    checksum_lines = []
+
+    deb_path = build_desktop_core_deb(ver, rel_dir)
+    deb_digest = _sha256_file(deb_path)
+    deb_info = {
+        "filename": deb_path.name,
+        "sha256": deb_digest,
+        "size_bytes": deb_path.stat().st_size,
+    }
+    checksum_lines.append(f"{deb_digest}  {deb_path.name}")
 
     if iso_path and Path(iso_path).exists():
         src = Path(iso_path).resolve()
@@ -73,7 +176,9 @@ def package_release(
             "sha256": digest,
             "size_bytes": size_bytes,
         }
-        (rel_dir / "SHA256SUMS").write_text(f"{digest}  {target_iso_name}\n", encoding="utf-8")
+        checksum_lines.append(f"{digest}  {target_iso_name}")
+
+    (rel_dir / "SHA256SUMS").write_text("\n".join(checksum_lines) + "\n", encoding="utf-8")
 
     manifest: Dict[str, Any] = {
         "schema": "lyux-release-manifest",
@@ -86,7 +191,10 @@ def package_release(
             "lyux_desktop": ver,
             "lyux_server": _read_version("lyux-server/VERSION", ver),
             "os_builder": _read_version("os-builder/VERSION", ver),
+            "debian_target": "13.8",
+            "kde_target": "6.3",
         },
+        "deb_package": deb_info,
         "iso": iso_info,
         "notes": notes or f"Release {channel} LyuX {ver}",
     }
@@ -132,6 +240,10 @@ def publish_github_release(
     sums_file = release_dir / "SHA256SUMS"
     if sums_file.exists():
         cmd.append(str(sums_file))
+    if manifest.get("deb_package"):
+        deb_file = release_dir / manifest["deb_package"]["filename"]
+        if deb_file.exists():
+            cmd.append(str(deb_file))
     if manifest.get("iso"):
         iso_file = release_dir / manifest["iso"]["filename"]
         if iso_file.exists():
