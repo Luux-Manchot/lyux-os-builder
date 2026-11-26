@@ -83,6 +83,12 @@ def build_desktop_core_deb(version: str, output_dir: Path) -> Path:
         "#!/bin/sh\n"
         "set -e\n"
         "chmod +x /opt/lyux/apps/enrollment/scripts/*.sh 2>/dev/null || true\n"
+        "mkdir -p /mnt/lyux-nas/homes\n"
+        "if [ -f /opt/lyux/apps/enrollment/scripts/lyux-pam-session.sh ] && [ -f /etc/pam.d/common-session ]; then\n"
+        "  if ! grep -qF 'lyux-pam-session.sh' /etc/pam.d/common-session; then\n"
+        "    echo 'session requisite pam_exec.so /opt/lyux/apps/enrollment/scripts/lyux-pam-session.sh' >> /etc/pam.d/common-session\n"
+        "  fi\n"
+        "fi\n"
         "exit 0\n"
     ).encode("utf-8")
 
