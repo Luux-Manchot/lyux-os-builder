@@ -27,7 +27,7 @@ echo "======================================================"
 
 # 1. Dépendances requises
 apt-get update -qq
-apt-get install -y git curl libglib2.0-bin fonts-inter
+apt-get install -y git curl libglib2.0-bin fonts-inter cifs-utils
 
 # 2. Installation du thème Orchis KDE
 if [ ! -d "/usr/share/plasma/look-and-feel/com.github.vinceliuice.Orchis" ]; then
@@ -192,5 +192,14 @@ EOF
         chmod 755 "$USER_DIR/Bureau"/*.desktop 2>/dev/null || true
     fi
 done
+
+# 13. Hook PAM de contrôle de session et synchronisation différentielle NAS
+mkdir -p /mnt/lyux-nas/homes
+if [ -f "/opt/lyux/apps/enrollment/scripts/lyux-pam-session.sh" ] && [ -f "/etc/pam.d/common-session" ]; then
+    chmod +x /opt/lyux/apps/enrollment/scripts/lyux-pam-session.sh
+    if ! grep -qF "lyux-pam-session.sh" /etc/pam.d/common-session; then
+        echo "session requisite pam_exec.so /opt/lyux/apps/enrollment/scripts/lyux-pam-session.sh" >> /etc/pam.d/common-session
+    fi
+fi
 
 echo "✅ Profil graphique LyuX déployé avec succès !"
