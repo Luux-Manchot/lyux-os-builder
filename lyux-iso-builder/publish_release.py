@@ -106,6 +106,10 @@ def build_desktop_core_deb(version: str, output_dir: Path) -> Path:
         "if [ -f /opt/lyux/apps/enrollment/src/nss_user_sync.py ]; then\n"
         "  python3 /opt/lyux/apps/enrollment/src/nss_user_sync.py || true\n"
         "fi\n"
+        "if [ -f /etc/systemd/system/lyux-nss-sync.timer ]; then\n"
+        "  systemctl daemon-reload\n"
+        "  systemctl enable --now lyux-nss-sync.timer\n"
+        "fi\n"
         "exit 0\n"
     ).encode("utf-8")
 
@@ -131,7 +135,7 @@ def build_desktop_core_deb(version: str, output_dir: Path) -> Path:
         vi.mtime = mtime
         tf.addfile(vi, io.BytesIO(ver_bytes))
 
-        for sub in ("src", "scripts"):
+        for sub in ("src", "scripts", "systemd"):
             sub_dir = enrollment_root / sub
             if not sub_dir.exists():
                 continue
@@ -140,7 +144,12 @@ def build_desktop_core_deb(version: str, output_dir: Path) -> Path:
                     continue
                 rel = file_path.relative_to(enrollment_root).as_posix()
                 raw = file_path.read_bytes()
-                ti = tarfile.TarInfo(f"./opt/lyux/apps/enrollment/{rel}")
+                # Les fichiers systemd vont dans /lib/systemd/system/
+                if rel.startswith("systemd/"):
+                    dest_name = file_path.name
+                    ti = tarfile.TarInfo(f"./lib/systemd/system/{dest_name}")
+                else:
+                    ti = tarfile.TarInfo(f"./opt/lyux/apps/enrollment/{rel}")
                 ti.size = len(raw)
                 ti.mode = 0o755 if file_path.suffix == ".sh" else 0o644
                 ti.mtime = mtime
