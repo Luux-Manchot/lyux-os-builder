@@ -17,3 +17,50 @@ Ce document précise les types de clés matérielles recommandés pour le déver
 2. **Sans achat de clé FIDO2** : utiliser **2 clés USB classiques** formatées en `ext4` ou `vfat` avec un fichier de jeton signé par la clé privée de l'établissement (vérifié par la clé publique du poste) et, en complément, l'identifiant matériel USB (`udev` `ID_SERIAL_SHORT`).
    - Ne jamais utiliser un simple fichier texte ou un label de partition seul (trivialement falsifiable).
    - Ne jamais laisser la clé USB de maintenance branchée en permanence sur un poste élève.
+
+---
+
+## Procédure de dépannage local (`root`) — Serveur déconnecté ou changement d'IP
+
+*(En attendant l'activation des clés de sécurité matérielles, le poste conserve uniquement le compte local `root` protégé par le mot de passe défini lors de l'OOBE.)*
+
+### 1. Ouvrir une console locale `root`
+Sur l'écran de connexion (SDDM) ou depuis une session figée :
+- Appuyer sur **`Ctrl + Alt + F2`** (ou `F3`) pour passer en console texte (TTY).
+- Saisir l'identifiant **`root`** et le **mot de passe `root`** configuré à l'installation.
+
+### 2. Vérifier le réseau et tester la nouvelle IP du serveur
+```bash
+ip -br addr
+curl -s http://<NOUVELLE_IP_SERVEUR>:8000/health
+```
+Si le câble ou le DHCP ne répond pas, vérifier l'interface (`dhclient enp0s3` ou configuration IP statique temporaire).
+
+### 3. Changer l'IP du serveur et relancer l'enrôlement (OOBE)
+```bash
+python3 - << 'EOF'
+import json
+from pathlib import Path
+
+state_file = Path("/var/lib/lyux/enrollment-state.json")
+data = json.loads(state_file.read_text(encoding="utf-8")) if state_file.exists() else {}
+data["server_url"] = "http://<NOUVELLE_IP_SERVEUR>:8000"
+data["state"] = "pending"
+state_file.parent.mkdir(parents=True, exist_ok=True)
+state_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
+EOF
+
+# Déclencher le ré-enrôlement / OOBE
+echo "reenroll" > /var/lib/lyux/first-boot-pending
+systemctl restart lyux-enrollment.service
+```
+
+### 4. Restaurer le profil de secours en cas d'échec de mise à jour
+```bash
+PYTHONPATH=/opt/lyux/apps/enrollment/src python3 -c "from profile_manifest import rollback_profile; print(rollback_profile())"
+cat /var/log/lyux-maintenance.log
+```
+
+### 5. Revenir à l'interface graphique
+- Appuyer sur **`Ctrl + Alt + F1`** (ou exécuter `systemctl restart sddm`).
+
