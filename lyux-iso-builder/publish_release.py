@@ -126,6 +126,13 @@ def build_desktop_core_deb(version: str, output_dir: Path) -> Path:
         "Hidden=true\n"
         "NoDisplay=true\n"
         "EOF\n"
+        "if [ -f /usr/lib/x86_64-linux-gnu/qt6/plugins/plasma/kcms/systemsettings/kcm_updates.so ] && ! dpkg-divert --list | grep -qF '/usr/lib/x86_64-linux-gnu/qt6/plugins/plasma/kcms/systemsettings/kcm_updates.so'; then\n"
+        "  dpkg-divert --local --rename --divert /usr/lib/x86_64-linux-gnu/qt6/plugins/plasma/kcms/systemsettings/kcm_updates.so.disabled --add /usr/lib/x86_64-linux-gnu/qt6/plugins/plasma/kcms/systemsettings/kcm_updates.so || true\n"
+        "fi\n"
+        "if [ -f /usr/share/applications/kcm_updates.desktop ] && ! dpkg-divert --list | grep -qF '/usr/share/applications/kcm_updates.desktop'; then\n"
+        "  dpkg-divert --local --rename --divert /usr/share/applications/kcm_updates.desktop.disabled --add /usr/share/applications/kcm_updates.desktop || true\n"
+        "fi\n"
+        "kbuildsycoca6 --noincremental >/dev/null 2>&1 || true\n"
         "cat > /usr/share/polkit-1/actions/fr.lyux.updates.policy <<'EOF'\n"
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
         "<!DOCTYPE policyconfig PUBLIC \"-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN\" \"http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd\">\n"
@@ -188,6 +195,15 @@ def build_desktop_core_deb(version: str, output_dir: Path) -> Path:
                 ti.mode = 0o755 if file_path.suffix == ".sh" else 0o644
                 ti.mtime = mtime
                 tf.addfile(ti, io.BytesIO(raw))
+
+        kcm_so = REPO_ROOT / "lyux-desktop" / "applications" / "kcm-lyux-updates" / "prebuilt" / "amd64" / "kcm_lyux_updates.so"
+        if kcm_so.exists():
+            kcm_raw = kcm_so.read_bytes()
+            ki = tarfile.TarInfo("./usr/lib/x86_64-linux-gnu/qt6/plugins/plasma/kcms/systemsettings/kcm_lyux_updates.so")
+            ki.size = len(kcm_raw)
+            ki.mode = 0o755
+            ki.mtime = mtime
+            tf.addfile(ki, io.BytesIO(kcm_raw))
 
     ar_bytes = (
         b"!<arch>\n"
