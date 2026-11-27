@@ -10,3 +10,7 @@ build/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+
+# Clés privées Veyon (jamais suivies en Git)
+lyux-ansible/configs/veyon/keys/private/
+lyux-ansible/roles/*/files/keys/private/

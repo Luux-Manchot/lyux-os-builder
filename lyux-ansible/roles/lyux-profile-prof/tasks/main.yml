@@ -37,13 +37,22 @@
     group: enseignants
     mode: '0750'
 
+- name: "Vérifier que la clef privée Veyon enseignant est injectée via coffre/secret"
+  ansible.builtin.assert:
+    that:
+      - veyon_teacher_private_key is defined
+      - veyon_teacher_private_key | length > 0
+    fail_msg: "veyon_teacher_private_key doit être injectée via Ansible Vault ou un secret manager."
+  no_log: true
+
 - name: "Déploiement de la clef privée Veyon enseignant"
   ansible.builtin.copy:
-    src: keys/private/teacher/key
+    content: "{{ veyon_teacher_private_key }}"
     dest: /etc/veyon/keys/private/teacher/key
     owner: root
     group: enseignants
     mode: '0440'
+  no_log: true
 
 - name: "Déploiement de la clef publique Veyon"
   ansible.builtin.copy:
