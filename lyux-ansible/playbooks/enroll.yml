@@ -12,3 +12,5 @@
     - role: lyux-base
     - role: lyux-kiosk
     - role: lyux-profile-salles
+    - role: lyux-bor-agent
+      when: bor_agent_enabled | default(false) | bool

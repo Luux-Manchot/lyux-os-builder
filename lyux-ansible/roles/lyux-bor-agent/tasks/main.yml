@@ -1,0 +1,84 @@
+---
+- name: Vérifier l'architecture amd64 pour bor-agent
+  ansible.builtin.assert:
+    that:
+      - ansible_architecture in ['x86_64', 'amd64']
+    fail_msg: "bor-agent (.deb amd64) requiert une architecture x86_64/amd64."
+  when: bor_agent_enabled | bool
+
+- name: Vérifier si bor-agent est déjà installé à la version cible
+  ansible.builtin.command: dpkg-query -W -f='${Version}' bor-agent
+  register: bor_agent_installed
+  failed_when: false
+  changed_when: false
+  when: bor_agent_enabled | bool
+
+- name: Télécharger le paquet officiel bor-agent {{ bor_agent_version }}
+  ansible.builtin.get_url:
+    url: "{{ bor_agent_deb_url }}"
+    dest: "/tmp/bor-agent_{{ bor_agent_version }}_amd64.deb"
+    mode: "0644"
+  when:
+    - bor_agent_enabled | bool
+    - bor_agent_installed.rc != 0 or bor_agent_version not in (bor_agent_installed.stdout | default(''))
+
+- name: Installer bor-agent depuis le paquet .deb
+  ansible.builtin.apt:
+    deb: "/tmp/bor-agent_{{ bor_agent_version }}_amd64.deb"
+    state: present
+  when:
+    - bor_agent_enabled | bool
+    - bor_agent_installed.rc != 0 or bor_agent_version not in (bor_agent_installed.stdout | default(''))
+
+- name: Créer les répertoires de configuration et d'état Bor
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: "/etc/bor", mode: "0755" }
+    - { path: "/var/lib/bor/agent", mode: "0700" }
+  when: bor_agent_enabled | bool
+
+- name: Détecter la présence du keytab Kerberos machine (/etc/krb5.keytab)
+  ansible.builtin.stat:
+    path: /etc/krb5.keytab
+  register: bor_krb5_keytab
+  when: bor_agent_enabled | bool
+
+- name: Déployer /etc/bor/config.yaml
+  ansible.builtin.template:
+    src: bor-agent-config.yaml.j2
+    dest: /etc/bor/config.yaml
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Restart bor-agent
+  when: bor_agent_enabled | bool
+
+- name: Vérifier si le poste possède déjà un certificat mTLS Bor
+  ansible.builtin.find:
+    paths: /var/lib/bor/agent
+    patterns: "*.crt,*.pem"
+  register: bor_agent_certs
+  when: bor_agent_enabled | bool
+
+- name: Enrôler bor-agent via jeton si Kerberos absent et non encore enrôlé
+  ansible.builtin.command: >
+    /usr/bin/bor-agent --config /etc/bor/config.yaml --token "{{ bor_enrollment_token }}"
+  no_log: true
+  when:
+    - bor_agent_enabled | bool
+    - not (bor_krb5_keytab.stat.exists | default(false))
+    - (bor_enrollment_token | default('') | length) > 0
+    - (bor_agent_certs.matched | default(0)) == 0
+
+- name: Activer et démarrer le service systemd bor-agent
+  ansible.builtin.systemd:
+    name: bor-agent
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: bor_agent_enabled | bool

@@ -1,0 +1,26 @@
+# Configuration bor-agent générée par Ansible (LyuX ADR-020)
+server:
+  address: "{{ bor_server_host }}"
+  enrollment_port: {{ bor_enrollment_port }}
+  policy_port: {{ bor_policy_port }}
+  insecure_skip_verify: {{ bor_insecure_skip_verify | bool | lower }}
+
+agent:
+  client_id: "{{ ansible_hostname | default('') }}"
+
+enrollment:
+  data_dir: "/var/lib/bor/agent"
+
+{% if bor_krb5_keytab.stat.exists | default(false) %}
+kerberos:
+  enabled: true
+  keytab_file: "/etc/krb5.keytab"
+  service_principal: "{{ bor_kerberos_service_principal }}"
+{% endif %}
+
+firefox:
+  policies_path: "/etc/firefox/policies/policies.json"
+
+chrome:
+  chromium_policies_path: "/etc/chromium/policies/managed"
+  chromium_browser_policies_path: "/etc/chromium-browser/policies/managed"

@@ -1,0 +1,6 @@
+---
+- name: Restart bor-agent
+  ansible.builtin.systemd:
+    name: bor-agent
+    state: restarted
+    daemon_reload: true

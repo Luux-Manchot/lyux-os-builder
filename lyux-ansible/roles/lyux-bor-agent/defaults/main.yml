@@ -1,0 +1,10 @@
+---
+bor_agent_enabled: true
+bor_agent_version: "0.10.1"
+bor_agent_deb_url: "https://github.com/VuteTech/bor/releases/download/v{{ bor_agent_version }}/bor-agent_{{ bor_agent_version }}_amd64.deb"
+bor_server_host: "{{ lyux_server_ip | default('serveur.lyux.lan') }}"
+bor_enrollment_port: 8089
+bor_policy_port: 9091
+bor_insecure_skip_verify: true
+bor_enrollment_token: ""
+bor_kerberos_service_principal: "HTTP/bor.lyux.lan@{{ lyux_realm | default('LYUX.LAN') }}"
