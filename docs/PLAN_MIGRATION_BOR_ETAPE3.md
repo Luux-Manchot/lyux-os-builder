@@ -19,7 +19,9 @@ Ce document recense l'audit des règles statiques actuelles dans `os-builder` et
 
 ---
 
-## 2. Groupes de politiques recommandés dans Bor
+## 2. Groupes de politiques recommandés dans Bor (Parc universel)
+
+> **Principe PC 100 % universel** : n'importe quel élève ou enseignant pouvant se connecter sur n'importe quel poste, **Bor** gère tout ce qui dépend de la **machine ou de la salle** (paquets installés sur disque, navigateurs, pare-feu, Polkit disques, KDE Kiosk commun), tandis que **LyuX** (`pam_session_hook.py` / `app_policy_sync.py`) applique à la volée au login ce qui dépend du **rôle de l'utilisateur** (visibilité des applis `eleve` vs `prof`, mono/multi-session, montage NAS `/homes`).
 
 1. **`base-lyux`** *(tous les postes clients)*
    - Politiques navigateurs (page d'accueil ENT, proxy/certificats lycée).
