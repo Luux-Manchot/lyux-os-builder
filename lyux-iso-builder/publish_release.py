@@ -144,6 +144,8 @@ def build_desktop_core_deb(version: str, output_dir: Path) -> Path:
                     continue
                 rel = file_path.relative_to(enrollment_root).as_posix()
                 raw = file_path.read_bytes()
+                if file_path.suffix in {".sh", ".py", ".service", ".timer"}:
+                    raw = raw.replace(b"\r\n", b"\n")
                 # Les fichiers systemd vont dans /lib/systemd/system/
                 if rel.startswith("systemd/"):
                     dest_name = file_path.name

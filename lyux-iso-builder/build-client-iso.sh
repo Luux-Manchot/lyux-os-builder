@@ -88,6 +88,8 @@ mkdir -p "$WORK_DIR/iso_root/lyux-payload/enrollment"
 mkdir -p "$WORK_DIR/iso_root/lyux-payload/welcome"
 cp -r "$REPO_ROOT/lyux-desktop/applications/enrollment/"* "$WORK_DIR/iso_root/lyux-payload/enrollment/" 2>/dev/null || true
 cp -r "$REPO_ROOT/lyux-desktop/applications/welcome/"* "$WORK_DIR/iso_root/lyux-payload/welcome/" 2>/dev/null || true
+find "$WORK_DIR/iso_root/lyux-payload" -type f \( -name '*.sh' -o -name '*.py' -o -name '*.service' -o -name '*.timer' \) -exec sed -i 's/\r$//' {} +
+find "$WORK_DIR/iso_root/lyux-payload" -type f -name '*.sh' -exec chmod +x {} +
 
 # 4b. Profil graphique générique LyuX et thèmes de base embarqués.
 # Le rendu doit être identique dès l'installation, même sans réseau dans
@@ -102,6 +104,8 @@ for theme in Orchis-kde WhiteSur-kde Tela-circle-icon-theme; do
     git clone --depth 1 "https://github.com/vinceliuice/${theme}.git" "$PROFILE_PAYLOAD/themes/$theme"
     rm -rf "$PROFILE_PAYLOAD/themes/$theme/.git"
 done
+find "$WORK_DIR/iso_root/lyux-payload" -type f \( -name '*.sh' -o -name '*.py' -o -name '*.service' -o -name '*.timer' \) -exec sed -i 's/\r$//' {} +
+find "$WORK_DIR/iso_root/lyux-payload" -type f -name '*.sh' -exec chmod +x {} +
 
 # 5. Configuration Isolinux & GRUB pour démarrage automatique (Zéro question)
 echo "🚀 Configuration du démarrage automatique (Isolinux BIOS & GRUB EFI)..."
